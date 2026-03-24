@@ -1,0 +1,28 @@
+# API Docker build ignore
+
+# Node deps and package logs
+node_modules
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local env and secrets
+.env
+.env.*.local
+
+# Logs and runtime files
+logs
+*.log
+
+# Editor / OS files
+.vscode/
+.idea/
+.DS_Store
+
+# Compose and misc
+docker-compose*.yml
+docker-compose*.yaml
+
+# Build output (build inside container)
+dist
+coverage

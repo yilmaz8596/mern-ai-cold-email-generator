@@ -1,0 +1,22 @@
+# Client Docker build ignore
+
+# Node deps and package logs
+node_modules
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local env and secrets
+.env
+.env.*.local
+
+# Build output from Vite
+dist
+build
+
+# Logs and misc
+*.log
+.DS_Store
+.vscode/
+.idea/
+coverage/
