@@ -2,12 +2,14 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
-import mongoose from "mongoose";
 import mongoSanitize from "express-mongo-sanitize";
+import cookiParser from "cookie-parser";
 import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes";
 import aiRoutes from "./routes/aiRoutes";
 import logger from "./config/logger";
+import { connectRedis } from "./config/redis";
+import { connectDB } from "./config/db";
 
 dotenv.config();
 
@@ -24,6 +26,7 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use(cookiParser());
 app.use(morgan("combined"));
 // Workaround for Express 5: `req.query` can be a getter-only property.
 // `express-mongo-sanitize` mutates `req.query` which causes a TypeError when
@@ -59,16 +62,17 @@ app.get("/health", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/ai", aiRoutes);
 
-mongoose
-  .connect(process.env.MONGO_URI!)
-  .then(() => {
-    logger.info("Connected to MongoDB");
-  })
-  .catch((error) => {
-    logger.error("Error connecting to MongoDB:", error);
-    process.exit(1);
-  });
+async function startServer() {
+  try {
+    await connectRedis();
+    await connectDB();
+    app.listen(PORT, () => {
+      logger.info(`Server is running on port ${PORT}`);
+    });
+  } catch (error) {
+    logger.error(`Failed to start server: ${error}`);
+    process.exit(1); // Exit the process if server fails to start
+  }
+}
 
-app.listen(PORT, () => {
-  logger.info(`Server is running on port ${PORT}`);
-});
+startServer();

@@ -2,8 +2,6 @@
 # - Builds the `dev` target from api/Dockerfile and bind-mounts the source.
 # - Keeps /app/node_modules as an anonymous volume so container-installed modules are preserved.
 # Usage: `docker compose -f docker-compose.dev.yml up --build`
-version: "3.8"
-
 services:
   # MongoDB dev service (use your local image if available)
   # - Replace `image` with your local/community image if preferred.
@@ -29,6 +27,19 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   api:
     build:
       context: ./api
@@ -37,19 +48,25 @@ services:
     volumes:
       - ./api:/app:delegated
       - /app/node_modules
+    env_file:
+      - ./api/.env
     environment:
       - NODE_ENV=development
       - HOST=0.0.0.0
       - PORT=5000
       # API connection string for development (matches DB credentials above)
       - MONGO_URI=mongodb://admin:admin123@db:27017/ai-cold-email-dev?authSource=admin
+      # Redis connection: prefer value from ./api/.env (Upstash) or host env.
+      # The shell command below will default to the local redis service when
+      # `REDIS_URL` is not provided in env files or the environment.
       # For some Windows setups, enable polling to detect file changes:
       # - CHOKIDAR_USEPOLLING=true
     ports:
       - "5000:5000"
-    command: npm run dev
+    command: sh -c 'export REDIS_URL=${REDIS_URL:-redis://redis:6379} && npm run dev'
     depends_on:
       - db
+      - redis
 
   client:
     build:
@@ -75,3 +92,4 @@ services:
 
 volumes:
   mongo-data:
+  redis-data:

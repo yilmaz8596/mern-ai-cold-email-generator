@@ -3,61 +3,213 @@ import { tryCatch } from "../util/tryCatch";
 import User from "../models/user.model";
 import logger from "../config/logger";
 import bcrypt from "bcryptjs";
-import { generateOTP } from "../util/generateOTP";
+import { generateOtp } from "../util/generateOTP";
 import { sendEmail } from "../util/sendEmail";
+import { redisClient } from "../config/redis";
+import { verifyOtp } from "../util/verifyOTP";
+import { generateTokens, verifyRefreshToken } from "../util/generateTokens";
 
 export const register = tryCatch(async (req: Request, res: Response) => {
   const { name, email, password } = req.body;
-
-  logger.info(`Register handler called for email=${email}`);
 
   if (!name || !email || !password) {
     return res
       .status(400)
       .json({ message: "Name, email, and password are required" });
   }
-
   if (password.length < 6) {
     return res
       .status(400)
       .json({ message: "Password must be at least 6 characters long" });
   }
-
   if (!/\S+@\S+\.\S+/.test(email)) {
     return res.status(400).json({ message: "Invalid email format" });
   }
-  const existingUser = await User.findOne({ email });
+
+  const emailLower = email.toLowerCase().trim();
+  const existingUser = await User.findOne({ email: emailLower });
   if (existingUser) {
     return res.status(400).json({ message: "Email is already registered" });
   }
 
-  const otp = generateOTP();
-  const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // OTP valid for 10 minutes
-
-  await sendEmail({
-    to: email,
-    subject: "Your OTP for AI Cold Email Generator",
-    otp,
-  });
-
+  // Hash password and create unverified user
   const hashedPassword = await bcrypt.hash(password, 10);
   const user = new User({
     name,
-    email,
+    email: emailLower,
     password: hashedPassword,
-    otp,
-    otpExpires,
+    isVerified: false,
   });
   await user.save();
 
-  logger.info(`User registered successfully: email=${email}`);
-  res.status(201).json({ message: "User registered successfully" });
+  // Generate OTP, store in Redis, send email
+  const otp = generateOtp();
+  const otpHash = await bcrypt.hash(otp, 10);
+  await redisClient.setEx(`otp:${emailLower}`, 10 * 60, otpHash);
+
+  await sendEmail({
+    to: emailLower,
+    subject: "Your OTP for Mailify Registration",
+    otp,
+  });
+  logger.info(`OTP sent for registration: email=${emailLower}`);
+
+  res.status(201).json({
+    message:
+      "Registration successful. Check your email for the OTP to verify your account.",
+  });
 });
 
-export const login = tryCatch(async (req: Request, res: Response) => {});
+export const login = tryCatch(async (req: Request, res: Response) => {
+  const { email, password } = req.body;
 
-export const refreshToken = tryCatch(async (req: Request, res: Response) => {});
+  if (!email || !password) {
+    return res.status(400).json({ message: "Email and password are required" });
+  }
 
-export const logout = tryCatch(async (req: Request, res: Response) => {});
+  const emailLower = email.toLowerCase().trim();
+  const user = await User.findOne({ email: emailLower });
 
-export const verifyOTP = tryCatch(async (req: Request, res: Response) => {});
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  const isPasswordValid = await bcrypt.compare(password, user.password);
+  if (!isPasswordValid) {
+    return res.status(400).json({ message: "Invalid password" });
+  }
+
+  if (!user.isVerified) {
+    return res.status(403).json({
+      message: "Email not verified. Please verify your account first.",
+    });
+  }
+
+  // Generate a fresh OTP for every login attempt
+  const otp = generateOtp();
+  const otpHash = await bcrypt.hash(otp, 10);
+  await redisClient.setEx(`otp:${emailLower}`, 10 * 60, otpHash);
+
+  await sendEmail({
+    to: emailLower,
+    subject: "Your OTP for Mailify Login",
+    otp,
+  });
+  logger.info(`OTP sent for login: email=${emailLower}`);
+
+  res
+    .status(200)
+    .json({ message: "OTP sent. Check your email to complete login." });
+});
+
+export const refreshToken = tryCatch(async (req: Request, res: Response) => {
+  const token = req.cookies?.refreshToken;
+
+  if (!token) {
+    return res.status(401).json({ message: "Refresh token not found" });
+  }
+
+  let payload: { userId: string; email: string };
+  try {
+    payload = verifyRefreshToken(token);
+  } catch {
+    return res
+      .status(401)
+      .json({ message: "Invalid or expired refresh token" });
+  }
+
+  // Confirm the token still exists in Redis (not logged out)
+  const stored = await redisClient.get(`refresh:${payload.userId}`);
+  if (!stored || stored !== token) {
+    return res.status(401).json({ message: "Refresh token revoked" });
+  }
+
+  const { accessToken, refreshToken: newRefresh } = await generateTokens({
+    userId: payload.userId,
+    email: payload.email,
+  });
+
+  res.cookie("accessToken", accessToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 15 * 60 * 1000, // 15 minutes
+  });
+  res.cookie("refreshToken", newRefresh, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  });
+
+  logger.info(`Token refreshed for userId=${payload.userId}`);
+  res.status(200).json({ message: "Token refreshed successfully" });
+});
+
+export const logout = tryCatch(async (req: Request, res: Response) => {
+  const token = req.cookies?.refreshToken;
+  if (token) {
+    try {
+      const payload = verifyRefreshToken(token);
+      await redisClient.del(`refresh:${payload.userId}`);
+    } catch {
+      // token invalid — nothing to revoke
+    }
+  }
+  res.clearCookie("refreshToken");
+  res.status(200).json({ message: "Logged out successfully" });
+});
+
+export const verifyOTP = tryCatch(async (req: Request, res: Response) => {
+  const { email, otp } = req.body;
+
+  if (!email || !otp) {
+    return res.status(400).json({ message: "Email and OTP are required" });
+  }
+
+  const emailLower = (email || "").toLowerCase().trim();
+  const user = await User.findOne({ email: emailLower });
+
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  const isOtpVerified = await verifyOtp(emailLower, otp);
+  if (!isOtpVerified) {
+    return res.status(400).json({ message: "OTP has expired or is invalid" });
+  }
+
+  // Delete OTP from Redis — single-use
+  await redisClient.del(`otp:${emailLower}`);
+
+  // Registration flow: first-time verify
+  if (!user.isVerified) {
+    user.isVerified = true;
+    await user.save();
+  }
+
+  // Issue tokens for both registration and login OTP verification
+  const { accessToken, refreshToken } = await generateTokens({
+    userId: user._id.toString(),
+    email: user.email,
+  });
+
+  res.cookie("accessToken", accessToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 15 * 60 * 1000, // 15 minutes
+  });
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  });
+
+  logger.info(`OTP verified and tokens issued: email=${emailLower}`);
+  res.status(200).json({
+    message: "OTP verified successfully",
+    user: { id: user._id, name: user.name, email: user.email },
+  });
+});

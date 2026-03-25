@@ -6,7 +6,7 @@ interface IUser extends Document {
   email: string;
   password: string;
   isVerified: boolean;
-  otp?: string;
+  otpHash?: string;
   otpExpires?: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
@@ -34,7 +34,7 @@ const userSchema = new Schema<IUser>(
       type: Boolean,
       default: false,
     },
-    otp: {
+    otpHash: {
       type: String,
     },
     otpExpires: {
