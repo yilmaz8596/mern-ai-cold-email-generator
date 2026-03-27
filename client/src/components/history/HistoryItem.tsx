@@ -1,8 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import useAiStore from "../../store/useAiStore";
 
 type HistoryRecord = {
   id: string;
@@ -13,7 +16,29 @@ type HistoryRecord = {
   creditsUsed: number;
 };
 
-export default function HistoryItem({ item }: { item: HistoryRecord }) {
+type Props = {
+  item: HistoryRecord;
+  onDeleteRequest: (id: string, subject: string) => void;
+};
+
+export default function HistoryItem({ item, onDeleteRequest }: Props) {
+  const updateHistory = useAiStore((s) => s.updateHistory);
+  const [editing, setEditing] = useState(false);
+  const [draftSubject, setDraftSubject] = useState(item.subject);
+
+  const saveEdit = () => {
+    const trimmed = draftSubject.trim();
+    if (!trimmed) return;
+    updateHistory(item.id, { subject: trimmed });
+    setEditing(false);
+    toast.success("Subject updated.");
+  };
+
+  const cancelEdit = () => {
+    setDraftSubject(item.subject);
+    setEditing(false);
+  };
+
   return (
     <motion.div
       variants={{
@@ -28,9 +53,24 @@ export default function HistoryItem({ item }: { item: HistoryRecord }) {
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
-          <div className="font-semibold text-foreground truncate">
-            {item.subject}
-          </div>
+          {editing ? (
+            <div className="flex items-center gap-2">
+              <Input
+                autoFocus
+                value={draftSubject}
+                onChange={(e) => setDraftSubject(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") saveEdit();
+                  if (e.key === "Escape") cancelEdit();
+                }}
+                className="h-7 text-sm"
+              />
+              <Button size="xs" onClick={saveEdit}>Save</Button>
+              <Button size="xs" variant="ghost" onClick={cancelEdit}>Cancel</Button>
+            </div>
+          ) : (
+            <div className="font-semibold text-foreground truncate">{item.subject}</div>
+          )}
           <div className="mt-0.5 text-xs text-muted-foreground">
             {new Date(item.date).toLocaleString()}
           </div>
@@ -51,10 +91,30 @@ export default function HistoryItem({ item }: { item: HistoryRecord }) {
         <Button
           variant="ghost"
           size="xs"
-          onClick={() => navigator.clipboard.writeText(item.emailBody)}
-          title="Copy email body"
+          onClick={() => {
+            navigator.clipboard.writeText(item.emailBody);
+            toast.success("Copied to clipboard.");
+          }}
         >
           Copy
+        </Button>
+        <Button
+          variant="ghost"
+          size="xs"
+          onClick={() => {
+            setDraftSubject(item.subject);
+            setEditing(true);
+          }}
+        >
+          Edit
+        </Button>
+        <Button
+          variant="ghost"
+          size="xs"
+          className="text-destructive hover:text-destructive"
+          onClick={() => onDeleteRequest(item.id, item.subject)}
+        >
+          Delete
         </Button>
       </div>
     </motion.div>

@@ -15,6 +15,8 @@ type AiStore = {
   history: EmailItem[];
   generate: (params: GenerateParams) => Promise<GenerateEmailResponse>;
   addHistory: (item: EmailItem) => void;
+  updateHistory: (id: string, patch: Partial<Pick<EmailItem, "subject" | "emailBody">>) => void;
+  removeHistory: (id: string) => void;
   clearHistory: () => void;
 };
 
@@ -46,6 +48,14 @@ export const useAiStore = create<AiStore>()(
       },
 
       addHistory: (item) => set((s) => ({ history: [item, ...s.history] })),
+
+      updateHistory: (id, patch) =>
+        set((s) => ({
+          history: s.history.map((h) => (h.id === id ? { ...h, ...patch } : h)),
+        })),
+
+      removeHistory: (id) =>
+        set((s) => ({ history: s.history.filter((h) => h.id !== id) })),
 
       clearHistory: () => set({ history: [] }),
     }),

@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import useStore from "../../store/useStore";
+import ThemeToggle from "../ui/ThemeToggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,7 +31,10 @@ export default function Topbar() {
         Mailify
       </Link>
 
-      {user && (
+      <div className="flex items-center gap-3">
+        <ThemeToggle />
+
+        {user && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="flex items-center gap-2.5 rounded-sm p-1 outline-none transition-colors hover:bg-muted">
@@ -78,7 +82,8 @@ export default function Topbar() {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      )}
+        )}
+      </div>
     </header>
   );
 }
