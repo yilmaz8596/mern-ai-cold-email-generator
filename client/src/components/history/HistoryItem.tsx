@@ -65,11 +65,17 @@ export default function HistoryItem({ item, onDeleteRequest }: Props) {
                 }}
                 className="h-7 text-sm"
               />
-              <Button size="xs" onClick={saveEdit}>Save</Button>
-              <Button size="xs" variant="ghost" onClick={cancelEdit}>Cancel</Button>
+              <Button size="xs" onClick={saveEdit}>
+                Save
+              </Button>
+              <Button size="xs" variant="ghost" onClick={cancelEdit}>
+                Cancel
+              </Button>
             </div>
           ) : (
-            <div className="font-semibold text-foreground truncate">{item.subject}</div>
+            <div className="font-semibold text-foreground truncate">
+              {item.subject}
+            </div>
           )}
           <div className="mt-0.5 text-xs text-muted-foreground">
             {new Date(item.date).toLocaleString()}

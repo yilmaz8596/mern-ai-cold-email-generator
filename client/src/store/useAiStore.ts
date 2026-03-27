@@ -1,6 +1,7 @@
 import create from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { type EmailItem, type GenerateEmailResponse, ApiError } from "../types";
+import { fetchWithAuth } from "../lib/utils";
 
 export type { EmailItem };
 
@@ -15,7 +16,10 @@ type AiStore = {
   history: EmailItem[];
   generate: (params: GenerateParams) => Promise<GenerateEmailResponse>;
   addHistory: (item: EmailItem) => void;
-  updateHistory: (id: string, patch: Partial<Pick<EmailItem, "subject" | "emailBody">>) => void;
+  updateHistory: (
+    id: string,
+    patch: Partial<Pick<EmailItem, "subject" | "emailBody">>,
+  ) => void;
   removeHistory: (id: string) => void;
   clearHistory: () => void;
 };
@@ -28,10 +32,9 @@ export const useAiStore = create<AiStore>()(
       generate: async ({ product, audience, tone, length }) => {
         const prompt = `Product/Service: ${product}\nTarget Audience: ${audience}\nTone: ${tone}\nLength: ${length}`;
 
-        const res = await fetch("/api/ai/generate-email", {
+        const res = await fetchWithAuth("/api/ai/generate-email", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          credentials: "include",
           body: JSON.stringify({ prompt }),
         });
 

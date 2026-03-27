@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { motion, useInView, AnimatePresence } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { Separator } from "../components/ui/separator";
@@ -18,16 +18,6 @@ const fadeUp = {
       delay: i * 0.09,
     },
   }),
-};
-
-const stagger = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.1, delayChildren: 0.15 } },
-};
-
-const charStagger = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.035, delayChildren: 0.1 } },
 };
 
 const charReveal = {

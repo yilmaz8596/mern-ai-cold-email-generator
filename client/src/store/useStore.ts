@@ -7,6 +7,7 @@ import {
   type VerifyOtpResponse,
   ApiError,
 } from "../types";
+import { fetchWithAuth } from "../lib/utils";
 
 // Re-export types consumed by other modules so existing imports keep working
 export type { EmailItem, BillingTransaction };
@@ -69,6 +70,8 @@ type Store = {
   addCredits: (amount: number) => void;
   addHistory: (item: EmailItem) => void;
   addTransaction: (tx: BillingTransaction) => void;
+  buyCredits: (variantId: string) => Promise<void>;
+  refreshCredits: () => Promise<void>;
 };
 
 // ---------------------------------------------------------------------------
@@ -101,7 +104,7 @@ export const useStore = create<Store>()(
           otp,
         });
         _pending = null;
-        set({ user: data.user, pendingEmail: null });
+        set({ user: data.user, pendingEmail: null, credits: data.credits });
       },
 
       resendOtp: async () => {
@@ -138,6 +141,31 @@ export const useStore = create<Store>()(
       addCredits: (amount) => set((s) => ({ credits: s.credits + amount })),
       addTransaction: (tx) =>
         set((s) => ({ transactions: [tx, ...s.transactions] })),
+
+      buyCredits: async (variantId) => {
+        const res = await fetchWithAuth("/api/billing/checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            variantId,
+            redirectUrl: `${window.location.origin}/dashboard/billing?success=true`,
+          }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok)
+          throw new ApiError(
+            res.status,
+            (data as { message?: string }).message ?? "Checkout failed",
+          );
+        window.location.href = (data as { url: string }).url;
+      },
+
+      refreshCredits: async () => {
+        const res = await fetchWithAuth("/api/billing/credits");
+        if (!res.ok) throw new Error("credits_fetch_failed");
+        const { credits } = await res.json();
+        set({ credits });
+      },
     }),
     {
       name: "mailify-auth",

@@ -42,6 +42,7 @@ export type ApiMessageResponse = {
 export type VerifyOtpResponse = {
   message: string;
   user: User;
+  credits: number;
 };
 
 /** Response from POST /api/ai/generate-email */

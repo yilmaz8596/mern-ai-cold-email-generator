@@ -54,11 +54,27 @@ export default function HistoryDetail() {
     toast.success("Content updated.");
   };
 
-  const sections: { label: string; key: SectionKey | "linkedInDM" | "followUpEmail"; value: string }[] = [
+  const sections: {
+    label: string;
+    key: SectionKey | "linkedInDM" | "followUpEmail";
+    value: string;
+  }[] = [
     { label: "Cold email", key: "emailBody", value: item.emailBody },
-    { label: "LinkedIn DM", key: "linkedInDM", value: (item as any).linkedInDM ?? "" },
-    { label: "Follow-up", key: "followUpEmail", value: (item as any).followUpEmail ?? "" },
-  ].filter((s) => s.value) as { label: string; key: SectionKey; value: string }[];
+    {
+      label: "LinkedIn DM",
+      key: "linkedInDM",
+      value: (item as any).linkedInDM ?? "",
+    },
+    {
+      label: "Follow-up",
+      key: "followUpEmail",
+      value: (item as any).followUpEmail ?? "",
+    },
+  ].filter((s) => s.value) as {
+    label: string;
+    key: SectionKey;
+    value: string;
+  }[];
 
   return (
     <motion.div
@@ -87,8 +103,16 @@ export default function HistoryDetail() {
               }}
               className="text-base font-bold"
             />
-            <Button size="xs" onClick={saveSubject}>Save</Button>
-            <Button size="xs" variant="ghost" onClick={() => setEditingSubject(false)}>Cancel</Button>
+            <Button size="xs" onClick={saveSubject}>
+              Save
+            </Button>
+            <Button
+              size="xs"
+              variant="ghost"
+              onClick={() => setEditingSubject(false)}
+            >
+              Cancel
+            </Button>
           </div>
         ) : (
           <div className="flex flex-1 items-start gap-2">
@@ -108,7 +132,9 @@ export default function HistoryDetail() {
             </Button>
           </div>
         )}
-        <Badge variant="outline" className="shrink-0">{item.creditsUsed} credits</Badge>
+        <Badge variant="outline" className="shrink-0">
+          {item.creditsUsed} credits
+        </Badge>
       </div>
       <p className="mb-6 text-xs text-muted-foreground">
         {new Date(item.date).toLocaleString()}
@@ -158,8 +184,19 @@ export default function HistoryDetail() {
                   className="w-full resize-y border border-border bg-muted/30 p-4 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
                 />
                 <div className="flex gap-2">
-                  <Button size="xs" onClick={() => saveSection(key as SectionKey)}>Save</Button>
-                  <Button size="xs" variant="ghost" onClick={() => setEditingSection(null)}>Cancel</Button>
+                  <Button
+                    size="xs"
+                    onClick={() => saveSection(key as SectionKey)}
+                  >
+                    Save
+                  </Button>
+                  <Button
+                    size="xs"
+                    variant="ghost"
+                    onClick={() => setEditingSection(null)}
+                  >
+                    Cancel
+                  </Button>
                 </div>
               </div>
             ) : (

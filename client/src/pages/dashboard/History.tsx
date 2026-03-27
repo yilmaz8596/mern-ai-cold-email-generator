@@ -92,8 +92,8 @@ export default function History() {
           <DialogHeader>
             <DialogTitle>Delete entry?</DialogTitle>
             <DialogDescription>
-              &ldquo;{confirmDelete?.subject}&rdquo; will be permanently removed.
-              This cannot be undone.
+              &ldquo;{confirmDelete?.subject}&rdquo; will be permanently
+              removed. This cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2">

@@ -1,7 +1,10 @@
-import React from "react";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 import useStore from "../../store/useStore";
 import { Badge } from "../../components/ui/badge";
+import { Button } from "../../components/ui/button";
 import { Separator } from "../../components/ui/separator";
 
 const fadeUp = {
@@ -32,9 +35,76 @@ const statusVariant: Record<
   failed: "destructive",
 };
 
+const PLANS = [
+  {
+    name: "Starter",
+    credits: 5_000,
+    price: "$9",
+    desc: "Great for trying out cold outreach.",
+    variantId: import.meta.env.VITE_LS_VARIANT_STARTER as string,
+  },
+  {
+    name: "Pro",
+    credits: 20_000,
+    price: "$29",
+    desc: "For teams running high-volume campaigns.",
+    variantId: import.meta.env.VITE_LS_VARIANT_PRO as string,
+    highlighted: true,
+  },
+];
+
 export default function Billing() {
   const credits = useStore((s) => s.credits);
   const transactions = useStore((s) => s.transactions);
+  const buyCredits = useStore((s) => s.buyCredits);
+  const refreshCredits = useStore((s) => s.refreshCredits);
+
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [buying, setBuying] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await refreshCredits();
+      toast.success("Balance refreshed.");
+    } catch {
+      toast.error("Could not refresh balance. Please log in again.");
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  // Handle redirect back from Lemon Squeezy after successful payment
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("success") === "true") {
+      // Clean the query string first
+      navigate("/dashboard/billing", { replace: true });
+      refreshCredits()
+        .then(() => toast.success("Payment successful — credits added!"))
+        .catch(() =>
+          toast.info(
+            "Payment received! Click ↻ Refresh to update your balance.",
+          ),
+        );
+    }
+  }, []);
+
+  const handleBuy = async (variantId: string, planName: string) => {
+    if (!variantId || variantId.startsWith("your_")) {
+      toast.error("This plan is not configured yet.");
+      return;
+    }
+    try {
+      setBuying(variantId);
+      await buyCredits(variantId);
+    } catch {
+      toast.error(`Could not start ${planName} checkout. Please try again.`);
+      setBuying(null);
+    }
+  };
 
   return (
     <motion.div
@@ -70,12 +140,76 @@ export default function Billing() {
             {credits.toLocaleString()}
           </p>
         </div>
-        <Badge variant="outline" className="text-xs">
-          Active
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="xs"
+            onClick={handleRefresh}
+            disabled={refreshing}
+          >
+            {refreshing ? "Syncing…" : "↻ Refresh"}
+          </Button>
+          <Badge variant="outline" className="text-xs">
+            Active
+          </Badge>
+        </div>
       </motion.div>
 
-      {/* history table */}
+      {/* plans */}
+      <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+        Top up credits
+      </p>
+      <motion.div
+        variants={stagger}
+        initial="hidden"
+        animate="show"
+        className="mb-10 grid gap-3 sm:grid-cols-2"
+      >
+        {PLANS.map((plan, i) => (
+          <motion.div
+            key={plan.name}
+            variants={fadeUp}
+            custom={i}
+            className={`flex flex-col gap-4 border p-5 ${
+              plan.highlighted
+                ? "border-primary bg-primary/5"
+                : "border-border bg-card"
+            }`}
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <p className="font-semibold text-foreground">{plan.name}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {plan.desc}
+                </p>
+              </div>
+              {plan.highlighted && (
+                <Badge variant="default" className="text-[10px]">
+                  Popular
+                </Badge>
+              )}
+            </div>
+            <div>
+              <span className="text-2xl font-bold text-foreground">
+                {plan.price}
+              </span>
+              <span className="ml-1.5 text-sm text-muted-foreground">
+                / {plan.credits.toLocaleString()} credits
+              </span>
+            </div>
+            <Button
+              className="w-full"
+              variant={plan.highlighted ? "default" : "outline"}
+              disabled={buying === plan.variantId}
+              onClick={() => handleBuy(plan.variantId, plan.name)}
+            >
+              {buying === plan.variantId ? "Redirecting…" : `Buy ${plan.name}`}
+            </Button>
+          </motion.div>
+        ))}
+      </motion.div>
+
+      {/* transaction history */}
       <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
         Transaction history
       </p>
@@ -152,3 +286,4 @@ export default function Billing() {
     </motion.div>
   );
 }
+
