@@ -1,15 +1,15 @@
 # Development Dockerfile for the React client (Vite)
 # - Designed for local development with bind-mounts and hot-reload.
-FROM node:22-alpine as deps
+FROM node:22-slim as deps
 
 WORKDIR /app
 
 COPY package.json package-lock.json ./
 
-# Install dependencies
-RUN npm ci
+# Install dependencies; skip lockfile hash-checks since we manage versions in package.json
+RUN npm install --no-package-lock
 
-FROM node:22-alpine as dev
+FROM node:22-slim as dev
 
 WORKDIR /app
 

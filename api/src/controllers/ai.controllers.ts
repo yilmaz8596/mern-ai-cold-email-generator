@@ -43,6 +43,27 @@ export const generateEmail = tryCatch(async (req: Request, res: Response) => {
 
   const data = await resp.json();
 
-  const generatedEmail = data.choices[0]?.message?.content || "";
-  return res.status(200).json({ email: generatedEmail });
+  const raw: string = data.choices[0]?.message?.content || "";
+
+  // Strip markdown code fences (```json ... ``` or ``` ... ```) if present
+  const jsonString = raw
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```$/, "")
+    .trim();
+
+  let subject: string,
+    emailBody: string,
+    linkedInDM: string,
+    followUpEmail: string;
+  try {
+    ({ subject, emailBody, linkedInDM, followUpEmail } =
+      JSON.parse(jsonString));
+  } catch {
+    console.error("Failed to parse Groq response as JSON:", jsonString);
+    return res.status(500).json({ message: "Failed to parse generated email" });
+  }
+
+  return res
+    .status(200)
+    .json({ subject, emailBody, linkedInDM, followUpEmail });
 });

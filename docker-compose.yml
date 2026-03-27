@@ -59,8 +59,10 @@ services:
       # Redis connection: prefer value from ./api/.env (Upstash) or host env.
       # The shell command below will default to the local redis service when
       # `REDIS_URL` is not provided in env files or the environment.
-      # For some Windows setups, enable polling to detect file changes:
-      # - CHOKIDAR_USEPOLLING=true
+      # Polling is required on Windows/Docker Desktop so tsx watch detects
+      # file changes from the bind-mounted Windows filesystem.
+      - CHOKIDAR_USEPOLLING=true
+      - CHOKIDAR_INTERVAL=500
     ports:
       - "5000:5000"
     command: sh -c 'export REDIS_URL=${REDIS_URL:-redis://redis:6379} && npm run dev'
@@ -81,11 +83,16 @@ services:
       - HOST=0.0.0.0
       - PORT=5173
       - VITE_HOST=0.0.0.0
+      # Tells vite.config.ts where to proxy /api/* requests.
+      # Inside Docker the API container is reachable by service name.
+      - VITE_API_TARGET=http://api:5000
       # Base URL that client code can use to call the API from the browser.
       # Use `http://localhost:5000` so the browser can reach the API mapped on the host.
       - VITE_API_URL=http://localhost:5000
-      # For some Windows setups, enable polling to detect file changes:
-      # - CHOKIDAR_USEPOLLING=true
+      # Polling is required on Windows/Docker Desktop so Vite detects
+      # file changes from the bind-mounted Windows filesystem.
+      - CHOKIDAR_USEPOLLING=true
+      - CHOKIDAR_INTERVAL=500
     ports:
       - "5173:5173"
     command: npm run dev -- --host 0.0.0.0
