@@ -9,6 +9,14 @@ export type User = {
   email: string;
 };
 
+/** Inputs used to generate an email */
+export type GenerateInputs = {
+  product: string;
+  audience: string;
+  tone: string;
+  length: string;
+};
+
 /** A generated email item stored in history */
 export type EmailItem = {
   id: string;
@@ -19,6 +27,7 @@ export type EmailItem = {
   chars: number;
   creditsUsed: number;
   date: string;
+  inputs?: GenerateInputs;
 };
 
 /** A billing / credit-purchase transaction */

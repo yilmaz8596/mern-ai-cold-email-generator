@@ -9,16 +9,22 @@ const navItems = [
   { to: "/dashboard/settings", label: "Settings", icon: "◎" },
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+  open?: boolean;
+  onClose?: () => void;
+}
+
+export default function Sidebar({ open = false, onClose }: SidebarProps) {
   const credits = useStore((s) => s.credits);
 
-  return (
-    <aside className="hidden w-56 shrink-0 border-r border-border bg-sidebar pb-6 pt-6 lg:flex lg:flex-col">
+  const sidebarContent = (
+    <>
       <nav className="flex flex-col gap-0.5 px-3">
         {navItems.map(({ to, label, icon }) => (
           <NavLink
             key={to}
             to={to}
+            onClick={onClose}
             className={({ isActive }) =>
               `flex items-center gap-3 px-3 py-2 text-sm transition-colors ${
                 isActive
@@ -36,7 +42,6 @@ export default function Sidebar() {
       {/* Credits panel */}
       <div className="mt-auto px-3">
         <div className="flex items-center gap-3 border border-border bg-muted/40 px-3 py-3">
-          {/* Coin / credit icon */}
           <div className="flex size-8 shrink-0 items-center justify-center bg-primary/10 text-primary">
             <svg
               viewBox="0 0 24 24"
@@ -63,6 +68,31 @@ export default function Sidebar() {
           </div>
         </div>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* ── Desktop sidebar (lg+) ── */}
+      <aside className="hidden w-56 shrink-0 border-r border-border bg-sidebar pb-6 pt-6 lg:flex lg:flex-col">
+        {sidebarContent}
+      </aside>
+
+      {/* ── Mobile drawer overlay ── */}
+      {open && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={onClose}
+            aria-hidden
+          />
+          {/* Drawer */}
+          <aside className="absolute inset-y-0 left-0 flex w-64 flex-col border-r border-border bg-sidebar pb-6 pt-6 shadow-xl">
+            {sidebarContent}
+          </aside>
+        </div>
+      )}
+    </>
   );
 }

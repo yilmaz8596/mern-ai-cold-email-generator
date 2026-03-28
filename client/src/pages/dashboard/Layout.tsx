@@ -1,18 +1,20 @@
-import React from "react";
+import React, { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { motion } from "framer-motion";
 import Sidebar from "../../components/Layout/Sidebar";
 import Topbar from "../../components/Layout/Topbar";
 
 export default function DashboardLayout() {
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
   return (
     <div
       className="flex min-h-screen flex-col bg-background text-left text-foreground"
       style={{ width: "100%", textAlign: "left" }}
     >
-      <Topbar />
+      <Topbar onMenuClick={() => setMobileSidebarOpen(true)} />
       <div className="flex flex-1">
-        <Sidebar />
+        <Sidebar open={mobileSidebarOpen} onClose={() => setMobileSidebarOpen(false)} />
         <motion.main
           key="dashboard-main"
           initial={{ opacity: 0, y: 8 }}

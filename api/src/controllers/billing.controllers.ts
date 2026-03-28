@@ -36,7 +36,8 @@ export const createCheckout = tryCatch(async (req: Request, res: Response) => {
   );
 
   if (error) {
-    console.error("[LS checkout error] storeId=%s variantId=%s error=%s cause=%j",
+    console.error(
+      "[LS checkout error] storeId=%s variantId=%s error=%s cause=%j",
       process.env.LEMONSQUEEZY_STORE_ID,
       variantId,
       error.message,
@@ -61,7 +62,11 @@ export const handleWebhook = tryCatch(async (req: Request, res: Response) => {
     crypto.timingSafeEqual(Buffer.from(digest), Buffer.from(signature));
 
   if (!signaturesMatch) {
-    console.warn("[LS webhook] signature mismatch — digest=%s received=%s", digest, signature);
+    console.warn(
+      "[LS webhook] signature mismatch — digest=%s received=%s",
+      digest,
+      signature,
+    );
     return res.status(401).json({ message: "Invalid signature" });
   }
 
@@ -71,7 +76,8 @@ export const handleWebhook = tryCatch(async (req: Request, res: Response) => {
 
   const variantId = String(payload.data.attributes.first_order_item.variant_id);
   // LS sends custom_data keys in snake_case
-  const userId = payload.meta.custom_data?.user_id ?? payload.meta.custom_data?.userId;
+  const userId =
+    payload.meta.custom_data?.user_id ?? payload.meta.custom_data?.userId;
   const credits = getVariantCredits()[variantId];
 
   if (userId && credits) {

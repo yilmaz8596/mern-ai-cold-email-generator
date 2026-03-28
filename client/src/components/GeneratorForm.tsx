@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLocation } from "react-router-dom";
 import useStore from "../store/useStore";
 import useAiStore from "../store/useAiStore";
+import type { GenerateInputs } from "../types";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -32,11 +34,20 @@ type Result = {
 };
 
 export default function GeneratorForm() {
-  const [product, setProduct] = useState("");
-  const [audience, setAudience] = useState("");
-  const [tone, setTone] = useState("professional");
-  const [length, setLength] = useState("medium");
+  const location = useLocation();
+  const prefill = (location.state as { inputs?: GenerateInputs } | null)?.inputs;
+
+  const [product, setProduct] = useState(prefill?.product ?? "");
+  const [audience, setAudience] = useState(prefill?.audience ?? "");
+  const [tone, setTone] = useState(prefill?.tone ?? "professional");
+  const [length, setLength] = useState(prefill?.length ?? "medium");
   const [loading, setLoading] = useState(false);
+
+  // When navigated with pre-filled inputs, clear the router state so
+  // a manual refresh doesn't re-apply the old values.
+  useEffect(() => {
+    if (prefill) window.history.replaceState({}, "");
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [error, setError] = useState("");
   const [result, setResult] = useState<Result | null>(null);
   const [activeTab, setActiveTab] = useState<keyof Result>("emailBody");
@@ -46,7 +57,7 @@ export default function GeneratorForm() {
   const credits = useStore((s) => s.credits);
   const deductCredits = useStore((s) => s.deductCredits);
   const generate = useAiStore((s) => s.generate);
-  const addHistory = useAiStore((s) => s.addHistory);
+  const fetchHistory = useAiStore((s) => s.fetchHistory);
 
   const estimateChars = LENGTH_LABELS[length] ?? 700;
   const estimateCredits = Math.ceil(estimateChars / 100);
@@ -75,16 +86,8 @@ export default function GeneratorForm() {
 
       setResult(data);
       setActiveTab("emailBody");
-      addHistory({
-        id: Date.now().toString(),
-        subject: data.subject,
-        emailBody: data.emailBody,
-        linkedInDM: data.linkedInDM,
-        followUpEmail: data.followUpEmail,
-        chars,
-        creditsUsed: Math.ceil(chars / 100),
-        date: new Date().toISOString(),
-      });
+      // Refresh history from DB so the new entry appears in History page
+      fetchHistory();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Generation failed.");
     } finally {
@@ -97,6 +100,21 @@ export default function GeneratorForm() {
     navigator.clipboard.writeText(result[activeTab]);
     setCopied(true);
     setTimeout(() => setCopied(false), 1800);
+  };
+
+  const downloadActive = () => {
+    if (!result) return;
+    const tabName = activeTab === "emailBody" ? "cold-email" : activeTab === "linkedInDM" ? "linkedin-dm" : "follow-up";
+    const text = activeTab === "emailBody"
+      ? `Subject: ${result.subject}\n\n${result[activeTab]}`
+      : result[activeTab];
+    const blob = new Blob([text], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${tabName}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const tabLabels: { key: keyof Result; label: string }[] = [
@@ -216,9 +234,14 @@ export default function GeneratorForm() {
                       Subject: <em>{result.subject}</em>
                     </p>
                   </div>
-                  <Button variant="outline" size="sm" onClick={copyActive}>
-                    {copied ? "Copied!" : "Copy"}
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={copyActive}>
+                      {copied ? "Copied!" : "Copy"}
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={downloadActive}>
+                      Download
+                    </Button>
+                  </div>
                 </div>
                 {/* tabs */}
                 <div className="mt-3 flex gap-0 border-b border-border">
@@ -259,11 +282,9 @@ export default function GeneratorForm() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="flex items-center justify-center border border-dashed border-border bg-muted/30 p-12 text-center text-sm text-muted-foreground"
+            className="flex items-center justify-center border border-dashed border-border bg-muted/30 p-8 text-sm text-muted-foreground"
           >
-            Fill in the form and click{" "}
-            <strong className="mx-1 text-foreground">Generate</strong> to see
-            your results here.
+            Fill in the form and hit <strong className="mx-1 text-foreground">Generate</strong> to see results.
           </motion.div>
         )}
       </AnimatePresence>

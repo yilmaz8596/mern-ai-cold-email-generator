@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { tryCatch } from "../util/tryCatch";
+import { Generation } from "../models/generation.model";
 
 export const generateEmail = tryCatch(async (req: Request, res: Response) => {
   const { prompt } = req.body;
@@ -24,6 +25,7 @@ export const generateEmail = tryCatch(async (req: Request, res: Response) => {
     ],
     max_tokens: 1000,
     temperature: 0.7,
+    response_format: { type: "json_object" },
   };
 
   const resp = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -45,11 +47,17 @@ export const generateEmail = tryCatch(async (req: Request, res: Response) => {
 
   const raw: string = data.choices[0]?.message?.content || "";
 
-  // Strip markdown code fences (```json ... ``` or ``` ... ```) if present
-  const jsonString = raw
+  // 1. Strip markdown code fences if present
+  let jsonString = raw
     .replace(/^```(?:json)?\s*/i, "")
     .replace(/\s*```$/, "")
     .trim();
+
+  // 2. Fallback: extract the first {...} JSON object from anywhere in the string
+  if (!jsonString.startsWith("{")) {
+    const match = jsonString.match(/\{[\s\S]*\}/);
+    if (match) jsonString = match[0];
+  }
 
   let subject: string,
     emailBody: string,
@@ -63,7 +71,51 @@ export const generateEmail = tryCatch(async (req: Request, res: Response) => {
     return res.status(500).json({ message: "Failed to parse generated email" });
   }
 
+  const user = (req as any).user;
+  const chars = subject.length + emailBody.length + linkedInDM.length + followUpEmail.length;
+  const creditsUsed = Math.ceil(chars / 100);
+
+  // Persist to MongoDB — parse inputs from the prompt if available
+  const { product = "", audience = "", tone = "professional", length: emailLength = "medium" } = req.body;
+  await Generation.create({
+    userId: user.userId,
+    subject, emailBody, linkedInDM, followUpEmail,
+    chars, creditsUsed,
+    inputs: { product, audience, tone, length: emailLength },
+  });
+
   return res
     .status(200)
     .json({ subject, emailBody, linkedInDM, followUpEmail });
+});
+
+export const getHistory = tryCatch(async (req: Request, res: Response) => {
+  const user = (req as any).user;
+  const generations = await Generation.find({ userId: user.userId })
+    .sort({ createdAt: -1 })
+    .lean();
+
+  const history = generations.map((g) => ({
+    id: (g._id as any).toString(),
+    subject: g.subject,
+    emailBody: g.emailBody,
+    linkedInDM: g.linkedInDM,
+    followUpEmail: g.followUpEmail,
+    chars: g.chars,
+    creditsUsed: g.creditsUsed,
+    date: g.createdAt.toISOString(),
+    inputs: g.inputs,
+  }));
+
+  return res.json({ history });
+});
+
+export const deleteGeneration = tryCatch(async (req: Request, res: Response) => {
+  const user = (req as any).user;
+  const { id } = req.params;
+
+  const deleted = await Generation.findOneAndDelete({ _id: id, userId: user.userId });
+  if (!deleted) return res.status(404).json({ message: "Not found" });
+
+  return res.json({ message: "Deleted" });
 });

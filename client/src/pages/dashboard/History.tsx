@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import useAiStore from "../../store/useAiStore";
@@ -20,7 +20,13 @@ const stagger = {
 
 export default function History() {
   const history = useAiStore((s) => s.history);
+  const historyLoaded = useAiStore((s) => s.historyLoaded);
+  const fetchHistory = useAiStore((s) => s.fetchHistory);
   const removeHistory = useAiStore((s) => s.removeHistory);
+
+  useEffect(() => {
+    if (!historyLoaded) fetchHistory();
+  }, [historyLoaded, fetchHistory]);
 
   const [confirmDelete, setConfirmDelete] = useState<{
     id: string;
@@ -31,9 +37,9 @@ export default function History() {
     setConfirmDelete({ id, subject });
   };
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (!confirmDelete) return;
-    removeHistory(confirmDelete.id);
+    await removeHistory(confirmDelete.id);
     toast.success("Entry deleted.");
     setConfirmDelete(null);
   };

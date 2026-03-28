@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { Badge } from "../ui/badge";
@@ -14,6 +14,7 @@ type HistoryRecord = {
   emailBody: string;
   chars: number;
   creditsUsed: number;
+  inputs?: { product: string; audience: string; tone: string; length: string };
 };
 
 type Props = {
@@ -23,8 +24,17 @@ type Props = {
 
 export default function HistoryItem({ item, onDeleteRequest }: Props) {
   const updateHistory = useAiStore((s) => s.updateHistory);
+  const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
   const [draftSubject, setDraftSubject] = useState(item.subject);
+
+  const handleRegenerate = () => {
+    if (!item.inputs) {
+      toast.info("No inputs saved for this entry.");
+      return;
+    }
+    navigate("/dashboard/generate", { state: { inputs: item.inputs } });
+  };
 
   const saveEdit = () => {
     const trimmed = draftSubject.trim();
@@ -114,6 +124,15 @@ export default function HistoryItem({ item, onDeleteRequest }: Props) {
         >
           Edit
         </Button>
+        {item.inputs && (
+          <Button
+            variant="ghost"
+            size="xs"
+            onClick={handleRegenerate}
+          >
+            Regenerate
+          </Button>
+        )}
         <Button
           variant="ghost"
           size="xs"
