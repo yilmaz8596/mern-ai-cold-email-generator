@@ -311,11 +311,7 @@ export default function Landing() {
     >
       <Navbar />
 
-      {/* ════════════════════════════════════════════════════
-          HERO
-      ════════════════════════════════════════════════════ */}
       <section className="relative overflow-hidden px-6 pb-24 pt-28">
-        {/* ambient glow */}
         <motion.div
           initial={{ opacity: 0, scale: 0.5 }}
           animate={{ opacity: 0.12, scale: 1 }}
@@ -323,9 +319,7 @@ export default function Landing() {
           className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/3 size-[700px] rounded-full bg-primary blur-[130px]"
         />
 
-        {/* centred column */}
         <div className="relative flex flex-col items-center text-center">
-          {/* badge */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -337,7 +331,6 @@ export default function Landing() {
             </Badge>
           </motion.div>
 
-          {/* headline */}
           <h1 className="mb-6 w-full max-w-2xl text-5xl font-bold leading-[1.1] tracking-tighter text-foreground md:text-6xl lg:text-[4.5rem]">
             <AnimatedHeadline text="Write better" delay={0.1} />
             <br />
@@ -348,7 +341,6 @@ export default function Landing() {
             />
           </h1>
 
-          {/* sub-headline */}
           <p className="mb-4 max-w-md text-base text-muted-foreground md:text-lg">
             <AnimatedSubheadline
               text="Generate personalised cold emails, LinkedIn DMs and follow-ups in under 3 seconds."
@@ -356,7 +348,6 @@ export default function Landing() {
             />
           </p>
 
-          {/* stats row */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -385,9 +376,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ════════════════════════════════════════════════════
-          HOW IT WORKS
-      ════════════════════════════════════════════════════ */}
       <section className="border-t border-border bg-muted/20 px-6 py-24">
         <Section className="mx-auto max-w-5xl">
           <motion.div variants={fadeUp} className="mb-14 text-center">
@@ -427,7 +415,6 @@ export default function Landing() {
             ))}
           </div>
 
-          {/* connecting line accent */}
           <motion.div
             variants={fadeUp}
             custom={4}
@@ -440,9 +427,6 @@ export default function Landing() {
         </Section>
       </section>
 
-      {/* ════════════════════════════════════════════════════
-          PRICING
-      ════════════════════════════════════════════════════ */}
       <section className="border-t border-border px-6 py-24">
         <Section className="mx-auto max-w-5xl">
           <motion.div variants={fadeUp} className="mb-14 text-center">
@@ -520,9 +504,6 @@ export default function Landing() {
         </Section>
       </section>
 
-      {/* ════════════════════════════════════════════════════
-          TESTIMONIALS
-      ════════════════════════════════════════════════════ */}
       <section className="border-t border-border bg-muted/20 px-6 py-24">
         <Section className="mx-auto max-w-5xl">
           <motion.div variants={fadeUp} className="mb-14 text-center">
@@ -546,7 +527,6 @@ export default function Landing() {
                 }}
                 className="flex flex-col gap-5 border border-border bg-card p-7 shadow-[3px_3px_0px_0px_var(--border)]"
               >
-                {/* quote mark */}
                 <span className="text-3xl font-black leading-none text-primary/30">
                   "
                 </span>
@@ -572,9 +552,6 @@ export default function Landing() {
         </Section>
       </section>
 
-      {/* ════════════════════════════════════════════════════
-          FOOTER
-      ════════════════════════════════════════════════════ */}
       <footer className="border-t border-border bg-background px-6 py-8">
         <div className="flex flex-col items-center gap-1 text-center">
           <p className="text-sm font-semibold tracking-tight text-foreground">

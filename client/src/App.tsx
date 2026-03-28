@@ -11,6 +11,7 @@ import History from "./pages/dashboard/History";
 import HistoryDetail from "./pages/dashboard/HistoryDetail";
 import Billing from "./pages/dashboard/Billing";
 import Settings from "./pages/dashboard/Settings";
+import Bulk from "./pages/dashboard/Bulk";
 import AdminLayout from "./pages/admin/Layout";
 import AdminOverview from "./pages/admin/Overview";
 import AdminUsers from "./pages/admin/Users";
@@ -25,7 +26,6 @@ export default function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/otp-verification" element={<OtpVerification />} />
 
-        {/* Protected dashboard — redirects to /login if not authenticated */}
         <Route element={<PrivateRoute />}>
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<Navigate to="generate" replace />} />
@@ -34,6 +34,7 @@ export default function App() {
               <Route index element={<History />} />
               <Route path=":id" element={<HistoryDetail />} />
             </Route>
+            <Route path="bulk" element={<Bulk />} />
             <Route path="billing" element={<Billing />} />
             <Route path="settings" element={<Settings />} />
           </Route>

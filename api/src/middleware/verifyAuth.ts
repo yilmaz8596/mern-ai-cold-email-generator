@@ -36,7 +36,7 @@ export const verifyAuth = (
       return res.status(401).json({ message: "Invalid access token" });
     }
 
-    req.user = payload; // Attach user info to request for downstream handlers
+    req.user = payload;
     next();
   } catch (error) {
     logger.error(

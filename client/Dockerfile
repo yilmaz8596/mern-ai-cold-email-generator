@@ -6,8 +6,8 @@ WORKDIR /app
 
 COPY package.json package-lock.json ./
 
-# Install dependencies; skip lockfile hash-checks since we manage versions in package.json
-RUN npm install --no-package-lock
+# npm ci uses the lockfile for fast, deterministic installs (much faster than npm install)
+RUN npm ci
 
 FROM node:22-slim as dev
 

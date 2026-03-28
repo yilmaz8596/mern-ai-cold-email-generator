@@ -125,11 +125,7 @@ export default function HistoryItem({ item, onDeleteRequest }: Props) {
           Edit
         </Button>
         {item.inputs && (
-          <Button
-            variant="ghost"
-            size="xs"
-            onClick={handleRegenerate}
-          >
+          <Button variant="ghost" size="xs" onClick={handleRegenerate}>
             Regenerate
           </Button>
         )}

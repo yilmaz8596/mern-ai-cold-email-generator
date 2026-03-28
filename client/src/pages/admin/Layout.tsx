@@ -22,7 +22,6 @@ export default function AdminLayout() {
       className="flex min-h-screen flex-col bg-background text-left text-foreground"
       style={{ width: "100%", textAlign: "left" }}
     >
-      {/* admin topbar */}
       <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-border bg-card px-6">
         <div className="flex items-center gap-2 text-sm">
           <Link to="/" className="font-bold tracking-tight text-foreground">
@@ -46,7 +45,6 @@ export default function AdminLayout() {
       </header>
 
       <div className="flex flex-1">
-        {/* sidebar */}
         <aside className="hidden w-52 shrink-0 border-r border-border bg-sidebar pt-6 pb-8 lg:flex lg:flex-col">
           <nav className="flex flex-col gap-0.5 px-3">
             {links.map(({ to, label, icon }) => (

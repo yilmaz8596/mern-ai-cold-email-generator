@@ -12,13 +12,13 @@ export const verifyOtp = async (
 
     if (!storedOtpHash) {
       logger.warn(`OTP verification failed: No OTP found for email=${email}`);
-      return false; // OTP has expired or does not exist
+      return false;
     }
 
     const isValid = await bcrypt.compare(otp, storedOtpHash);
     if (!isValid) {
       logger.warn(`OTP verification failed: Invalid OTP for email=${email}`);
-      return false; // Invalid OTP
+      return false;
     }
 
     return true;

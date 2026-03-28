@@ -5,6 +5,7 @@ import useStore from "../../store/useStore";
 const navItems = [
   { to: "/dashboard/generate", label: "Generate", icon: "✦" },
   { to: "/dashboard/history", label: "History", icon: "◷" },
+  { to: "/dashboard/bulk", label: "Bulk", icon: "⊞" },
   { to: "/dashboard/billing", label: "Billing", icon: "◈" },
   { to: "/dashboard/settings", label: "Settings", icon: "◎" },
 ];
@@ -39,7 +40,6 @@ export default function Sidebar({ open = false, onClose }: SidebarProps) {
         ))}
       </nav>
 
-      {/* Credits panel */}
       <div className="mt-auto px-3">
         <div className="flex items-center gap-3 border border-border bg-muted/40 px-3 py-3">
           <div className="flex size-8 shrink-0 items-center justify-center bg-primary/10 text-primary">
@@ -73,21 +73,17 @@ export default function Sidebar({ open = false, onClose }: SidebarProps) {
 
   return (
     <>
-      {/* ── Desktop sidebar (lg+) ── */}
       <aside className="hidden w-56 shrink-0 border-r border-border bg-sidebar pb-6 pt-6 lg:flex lg:flex-col">
         {sidebarContent}
       </aside>
 
-      {/* ── Mobile drawer overlay ── */}
       {open && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/50"
             onClick={onClose}
             aria-hidden
           />
-          {/* Drawer */}
           <aside className="absolute inset-y-0 left-0 flex w-64 flex-col border-r border-border bg-sidebar pb-6 pt-6 shadow-xl">
             {sidebarContent}
           </aside>

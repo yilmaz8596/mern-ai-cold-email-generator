@@ -111,7 +111,6 @@ export default function AdminUsers() {
                     suspended.has(u.id) ? "opacity-50" : ""
                   }`}
                 >
-                  {/* user cell */}
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2.5">
                       <div className="flex size-8 shrink-0 items-center justify-center border border-border bg-muted text-xs font-bold text-foreground">
@@ -125,7 +124,6 @@ export default function AdminUsers() {
                       </div>
                     </div>
                   </td>
-                  {/* credits with bar */}
                   <td className="px-4 py-3">
                     <div className="flex flex-col gap-1">
                       <span className="text-foreground">
@@ -183,7 +181,6 @@ export default function AdminUsers() {
         </table>
       </div>
 
-      {/* Confirm suspend/unsuspend modal */}
       <Dialog
         open={!!confirmTarget}
         onOpenChange={(open) => {

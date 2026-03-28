@@ -35,7 +35,8 @@ type Result = {
 
 export default function GeneratorForm() {
   const location = useLocation();
-  const prefill = (location.state as { inputs?: GenerateInputs } | null)?.inputs;
+  const prefill = (location.state as { inputs?: GenerateInputs } | null)
+    ?.inputs;
 
   const [product, setProduct] = useState(prefill?.product ?? "");
   const [audience, setAudience] = useState(prefill?.audience ?? "");
@@ -43,8 +44,6 @@ export default function GeneratorForm() {
   const [length, setLength] = useState(prefill?.length ?? "medium");
   const [loading, setLoading] = useState(false);
 
-  // When navigated with pre-filled inputs, clear the router state so
-  // a manual refresh doesn't re-apply the old values.
   useEffect(() => {
     if (prefill) window.history.replaceState({}, "");
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -86,7 +85,6 @@ export default function GeneratorForm() {
 
       setResult(data);
       setActiveTab("emailBody");
-      // Refresh history from DB so the new entry appears in History page
       fetchHistory();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Generation failed.");
@@ -104,10 +102,16 @@ export default function GeneratorForm() {
 
   const downloadActive = () => {
     if (!result) return;
-    const tabName = activeTab === "emailBody" ? "cold-email" : activeTab === "linkedInDM" ? "linkedin-dm" : "follow-up";
-    const text = activeTab === "emailBody"
-      ? `Subject: ${result.subject}\n\n${result[activeTab]}`
-      : result[activeTab];
+    const tabName =
+      activeTab === "emailBody"
+        ? "cold-email"
+        : activeTab === "linkedInDM"
+          ? "linkedin-dm"
+          : "follow-up";
+    const text =
+      activeTab === "emailBody"
+        ? `Subject: ${result.subject}\n\n${result[activeTab]}`
+        : result[activeTab];
     const blob = new Blob([text], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -125,7 +129,6 @@ export default function GeneratorForm() {
 
   return (
     <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
-      {/* ── Input form ─────────────────────────────────── */}
       <Card>
         <CardHeader>
           <CardTitle>Your details</CardTitle>
@@ -215,7 +218,6 @@ export default function GeneratorForm() {
         </CardContent>
       </Card>
 
-      {/* ── Output ─────────────────────────────────────── */}
       <AnimatePresence mode="wait">
         {result ? (
           <motion.div
@@ -238,12 +240,15 @@ export default function GeneratorForm() {
                     <Button variant="outline" size="sm" onClick={copyActive}>
                       {copied ? "Copied!" : "Copy"}
                     </Button>
-                    <Button variant="outline" size="sm" onClick={downloadActive}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={downloadActive}
+                    >
                       Download
                     </Button>
                   </div>
                 </div>
-                {/* tabs */}
                 <div className="mt-3 flex gap-0 border-b border-border">
                   {tabLabels.map(({ key, label }) => (
                     <button
@@ -284,12 +289,13 @@ export default function GeneratorForm() {
             exit={{ opacity: 0 }}
             className="flex items-center justify-center border border-dashed border-border bg-muted/30 p-8 text-sm text-muted-foreground"
           >
-            Fill in the form and hit <strong className="mx-1 text-foreground">Generate</strong> to see results.
+            Fill in the form and hit{" "}
+            <strong className="mx-1 text-foreground">Generate</strong> to see
+            results.
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* ── Upgrade modal ──────────────────────────────── */}
       <Dialog open={upgradeOpen} onOpenChange={setUpgradeOpen}>
         <DialogContent>
           <DialogHeader>

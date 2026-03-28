@@ -32,7 +32,6 @@ export const register = tryCatch(async (req: Request, res: Response) => {
     return res.status(400).json({ message: "Email is already registered" });
   }
 
-  // Hash password and create unverified user
   const hashedPassword = await bcrypt.hash(password, 10);
   const user = new User({
     name,
@@ -42,7 +41,6 @@ export const register = tryCatch(async (req: Request, res: Response) => {
   });
   await user.save();
 
-  // Generate OTP, store in Redis, send email
   const otp = generateOtp();
   const otpHash = await bcrypt.hash(otp, 10);
   await redisClient.setEx(`otp:${emailLower}`, 10 * 60, otpHash);
@@ -85,7 +83,6 @@ export const login = tryCatch(async (req: Request, res: Response) => {
     });
   }
 
-  // Generate a fresh OTP for every login attempt
   const otp = generateOtp();
   const otpHash = await bcrypt.hash(otp, 10);
   await redisClient.setEx(`otp:${emailLower}`, 10 * 60, otpHash);
@@ -118,7 +115,6 @@ export const refreshToken = tryCatch(async (req: Request, res: Response) => {
       .json({ message: "Invalid or expired refresh token" });
   }
 
-  // Confirm the token still exists in Redis (not logged out)
   const stored = await redisClient.get(`refresh:${payload.userId}`);
   if (!stored || stored !== token) {
     return res.status(401).json({ message: "Refresh token revoked" });
@@ -133,13 +129,13 @@ export const refreshToken = tryCatch(async (req: Request, res: Response) => {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
-    maxAge: 15 * 60 * 1000, // 15 minutes
+    maxAge: 15 * 60 * 1000,
   });
   res.cookie("refreshToken", newRefresh, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
   logger.info(`Token refreshed for userId=${payload.userId}`);
@@ -152,9 +148,7 @@ export const logout = tryCatch(async (req: Request, res: Response) => {
     try {
       const payload = verifyRefreshToken(token);
       await redisClient.del(`refresh:${payload.userId}`);
-    } catch {
-      // token invalid — nothing to revoke
-    }
+    } catch {}
   }
   res.clearCookie("refreshToken");
   res.status(200).json({ message: "Logged out successfully" });
@@ -179,16 +173,13 @@ export const verifyOTP = tryCatch(async (req: Request, res: Response) => {
     return res.status(400).json({ message: "OTP has expired or is invalid" });
   }
 
-  // Delete OTP from Redis — single-use
   await redisClient.del(`otp:${emailLower}`);
 
-  // Registration flow: first-time verify
   if (!user.isVerified) {
     user.isVerified = true;
     await user.save();
   }
 
-  // Issue tokens for both registration and login OTP verification
   const { accessToken, refreshToken } = await generateTokens({
     userId: user._id.toString(),
     email: user.email,
@@ -198,13 +189,13 @@ export const verifyOTP = tryCatch(async (req: Request, res: Response) => {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
-    maxAge: 15 * 60 * 1000, // 15 minutes
+    maxAge: 15 * 60 * 1000,
   });
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
   logger.info(`OTP verified and tokens issued: email=${emailLower}`);

@@ -10,10 +10,10 @@ interface EmailOptions {
 export const sendEmail = async (options: EmailOptions) => {
   try {
     const transporter = nodemailer.createTransport({
-      service: process.env.EMAIL_SERVICE, // e.g., 'Gmail'
+      service: process.env.EMAIL_SERVICE,
       host: process.env.EMAIL_HOST,
       port: Number(process.env.EMAIL_PORT) || 587,
-      secure: false, // true for 465, false for other ports
+      secure: false,
       requireTLS: true,
       auth: {
         user: process.env.EMAIL_USER,

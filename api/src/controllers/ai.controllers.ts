@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { Resend } from "resend";
 import { tryCatch } from "../util/tryCatch";
 import { Generation } from "../models/generation.model";
 
@@ -47,13 +48,11 @@ export const generateEmail = tryCatch(async (req: Request, res: Response) => {
 
   const raw: string = data.choices[0]?.message?.content || "";
 
-  // 1. Strip markdown code fences if present
   let jsonString = raw
     .replace(/^```(?:json)?\s*/i, "")
     .replace(/\s*```$/, "")
     .trim();
 
-  // 2. Fallback: extract the first {...} JSON object from anywhere in the string
   if (!jsonString.startsWith("{")) {
     const match = jsonString.match(/\{[\s\S]*\}/);
     if (match) jsonString = match[0];
@@ -72,15 +71,27 @@ export const generateEmail = tryCatch(async (req: Request, res: Response) => {
   }
 
   const user = (req as any).user;
-  const chars = subject.length + emailBody.length + linkedInDM.length + followUpEmail.length;
+  const chars =
+    subject.length +
+    emailBody.length +
+    linkedInDM.length +
+    followUpEmail.length;
   const creditsUsed = Math.ceil(chars / 100);
 
-  // Persist to MongoDB — parse inputs from the prompt if available
-  const { product = "", audience = "", tone = "professional", length: emailLength = "medium" } = req.body;
+  const {
+    product = "",
+    audience = "",
+    tone = "professional",
+    length: emailLength = "medium",
+  } = req.body;
   await Generation.create({
     userId: user.userId,
-    subject, emailBody, linkedInDM, followUpEmail,
-    chars, creditsUsed,
+    subject,
+    emailBody,
+    linkedInDM,
+    followUpEmail,
+    chars,
+    creditsUsed,
     inputs: { product, audience, tone, length: emailLength },
   });
 
@@ -110,12 +121,59 @@ export const getHistory = tryCatch(async (req: Request, res: Response) => {
   return res.json({ history });
 });
 
-export const deleteGeneration = tryCatch(async (req: Request, res: Response) => {
-  const user = (req as any).user;
-  const { id } = req.params;
+export const deleteGeneration = tryCatch(
+  async (req: Request, res: Response) => {
+    const user = (req as any).user;
+    const { id } = req.params;
 
-  const deleted = await Generation.findOneAndDelete({ _id: id, userId: user.userId });
-  if (!deleted) return res.status(404).json({ message: "Not found" });
+    const deleted = await Generation.findOneAndDelete({
+      _id: id,
+      userId: user.userId,
+    });
+    if (!deleted) return res.status(404).json({ message: "Not found" });
 
-  return res.json({ message: "Deleted" });
+    return res.json({ message: "Deleted" });
+  },
+);
+
+export const sendEmail = tryCatch(async (req: Request, res: Response) => {
+  const { to, subject, body } = req.body as {
+    to: string;
+    subject: string;
+    body: string;
+  };
+
+  if (!to || !subject || !body) {
+    return res
+      .status(400)
+      .json({ message: "to, subject and body are required" });
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(to)) {
+    return res.status(400).json({ message: "Invalid recipient email address" });
+  }
+
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    return res.status(500).json({ message: "Email sending is not configured" });
+  }
+
+  const resend = new Resend(apiKey);
+  const from = process.env.FROM_EMAIL ?? "onboarding@resend.dev";
+  const { data, error } = await resend.emails.send({
+    from,
+    to,
+    subject,
+    text: body,
+  });
+
+  if (error) {
+    console.error("Resend error:", error);
+    return res
+      .status(502)
+      .json({ message: error.message ?? "Failed to send email" });
+  }
+
+  return res.json({ message: "Email sent", id: data?.id });
 });

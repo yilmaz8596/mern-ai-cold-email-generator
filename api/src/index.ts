@@ -31,10 +31,6 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(cookiParser());
 app.use(morgan("combined"));
-// Workaround for Express 5: `req.query` can be a getter-only property.
-// `express-mongo-sanitize` mutates `req.query` which causes a TypeError when
-// the property is not writable. Create a writable shallow copy of `req.query`
-// and attach it to the request before running the sanitizer.
 app.use(
   (
     req: express.Request,
@@ -49,9 +45,7 @@ app.use(
         writable: true,
         value: q,
       });
-    } catch (err) {
-      // If overriding fails, continue without the workaround.
-    }
+    } catch {}
     next();
   },
 );
@@ -74,7 +68,7 @@ async function startServer() {
     });
   } catch (error) {
     logger.error(`Failed to start server: ${error}`);
-    process.exit(1); // Exit the process if server fails to start
+    process.exit(1);
   }
 }
 

@@ -180,7 +180,6 @@ export default function AdminOverview() {
         </p>
       </div>
 
-      {/* stat cards */}
       <motion.div
         variants={stagger}
         initial="hidden"
@@ -206,7 +205,6 @@ export default function AdminOverview() {
       </motion.div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* recent transactions */}
         <motion.div
           variants={fadeUp}
           initial="hidden"
@@ -263,7 +261,6 @@ export default function AdminOverview() {
           </div>
         </motion.div>
 
-        {/* top users */}
         <motion.div
           variants={fadeUp}
           initial="hidden"

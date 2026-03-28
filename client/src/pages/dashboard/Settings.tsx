@@ -24,7 +24,6 @@ export default function Settings() {
       transition={{ duration: 0.3 }}
       className="flex h-full flex-col p-6 md:p-8"
     >
-      {/* Header */}
       <div className="mb-6">
         <h2 className="text-xl font-bold tracking-tight text-foreground">
           Settings
@@ -34,9 +33,7 @@ export default function Settings() {
         </p>
       </div>
 
-      {/* Two-column grid — fills remaining height without overflow */}
       <div className="grid flex-1 grid-cols-1 gap-4 md:grid-cols-2">
-        {/* Profile card */}
         <div className="flex flex-col border border-border p-5">
           <p className="text-sm font-semibold text-foreground">Profile</p>
           <p className="mt-0.5 mb-5 text-xs text-muted-foreground">
@@ -70,7 +67,6 @@ export default function Settings() {
           </form>
         </div>
 
-        {/* Password card */}
         <div className="flex flex-col border border-border p-5">
           <p className="text-sm font-semibold text-foreground">Password</p>
           <p className="mt-0.5 mb-5 text-xs text-muted-foreground">
@@ -93,7 +89,6 @@ export default function Settings() {
           </div>
         </div>
 
-        {/* Danger zone card — spans full width on large screens */}
         <div className="flex flex-col border border-destructive/30 p-5 md:col-span-2">
           <p className="text-sm font-semibold text-destructive">Danger zone</p>
           <p className="mt-0.5 mb-5 text-xs text-muted-foreground">

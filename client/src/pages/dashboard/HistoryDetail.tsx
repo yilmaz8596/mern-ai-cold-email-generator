@@ -14,11 +14,9 @@ export default function HistoryDetail() {
   const updateHistory = useAiStore((s) => s.updateHistory);
   const item = history.find((h) => h.id === id);
 
-  // subject editing
   const [editingSubject, setEditingSubject] = useState(false);
   const [draftSubject, setDraftSubject] = useState("");
 
-  // body editing — track which section key is being edited
   const [editingSection, setEditingSection] = useState<string | null>(null);
   const [draftBody, setDraftBody] = useState("");
 

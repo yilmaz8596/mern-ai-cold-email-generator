@@ -48,7 +48,6 @@ export default function Register() {
       className="flex min-h-screen text-left"
       style={{ width: "100%", textAlign: "left" }}
     >
-      {/* left branding pane */}
       <motion.div
         initial={{ opacity: 0, x: -40 }}
         animate={{ opacity: 1, x: 0 }}
@@ -80,7 +79,6 @@ export default function Register() {
         <p className="text-xs text-muted-foreground">© 2026 Mailify</p>
       </motion.div>
 
-      {/* right form pane */}
       <div className="flex flex-1 flex-col items-center justify-center px-8 py-16">
         <motion.div
           variants={{

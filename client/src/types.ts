@@ -1,15 +1,9 @@
-// ---------------------------------------------------------------------------
-// Shared application types
-// ---------------------------------------------------------------------------
-
-/** Authenticated user returned by POST /api/auth/verify-otp */
 export type User = {
   id: string;
   name: string;
   email: string;
 };
 
-/** Inputs used to generate an email */
 export type GenerateInputs = {
   product: string;
   audience: string;
@@ -17,7 +11,6 @@ export type GenerateInputs = {
   length: string;
 };
 
-/** A generated email item stored in history */
 export type EmailItem = {
   id: string;
   subject: string;
@@ -30,7 +23,6 @@ export type EmailItem = {
   inputs?: GenerateInputs;
 };
 
-/** A billing / credit-purchase transaction */
 export type BillingTransaction = {
   id: string;
   plan: string;
@@ -39,10 +31,6 @@ export type BillingTransaction = {
   date: string;
   status: "completed" | "pending" | "failed";
 };
-
-// ---------------------------------------------------------------------------
-// API response shapes
-// ---------------------------------------------------------------------------
 
 export type ApiMessageResponse = {
   message: string;
@@ -54,17 +42,12 @@ export type VerifyOtpResponse = {
   credits: number;
 };
 
-/** Response from POST /api/ai/generate-email */
 export type GenerateEmailResponse = {
   subject: string;
   emailBody: string;
   linkedInDM: string;
   followUpEmail: string;
 };
-
-// ---------------------------------------------------------------------------
-// Error thrown by store auth actions on non-2xx responses
-// ---------------------------------------------------------------------------
 
 export class ApiError extends Error {
   readonly status: number;

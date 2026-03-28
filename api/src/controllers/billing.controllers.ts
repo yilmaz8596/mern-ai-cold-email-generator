@@ -14,7 +14,6 @@ lemonSqueezySetup({
   apiKey: process.env.LEMONSQUEEZY_API_KEY!,
 });
 
-// Build after dotenv.config() so env vars are available
 const getVariantCredits = (): Record<string, number> => ({
   [process.env.LS_VARIANT_STARTER!]: 5000,
   [process.env.LS_VARIANT_PRO!]: 20000,
@@ -22,7 +21,7 @@ const getVariantCredits = (): Record<string, number> => ({
 
 export const createCheckout = tryCatch(async (req: Request, res: Response) => {
   const { variantId, redirectUrl } = req.body;
-  const user = (req as any).user; // set by verifyAuth — contains { userId, email }
+  const user = (req as any).user;
 
   const { data, error } = await lsCreateCheckout(
     process.env.LEMONSQUEEZY_STORE_ID!,
@@ -75,7 +74,6 @@ export const handleWebhook = tryCatch(async (req: Request, res: Response) => {
   if (payload.data.attributes.status !== "paid") return res.sendStatus(200);
 
   const variantId = String(payload.data.attributes.first_order_item.variant_id);
-  // LS sends custom_data keys in snake_case
   const userId =
     payload.meta.custom_data?.user_id ?? payload.meta.custom_data?.userId;
   const credits = getVariantCredits()[variantId];

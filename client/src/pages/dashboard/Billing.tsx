@@ -76,11 +76,9 @@ export default function Billing() {
     }
   };
 
-  // Handle redirect back from Lemon Squeezy after successful payment
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (params.get("success") === "true") {
-      // Clean the query string first
       navigate("/dashboard/billing", { replace: true });
       refreshCredits()
         .then(() => toast.success("Payment successful — credits added!"))
@@ -113,7 +111,6 @@ export default function Billing() {
       transition={{ duration: 0.3 }}
       className="p-6 md:p-8"
     >
-      {/* header */}
       <div className="mb-2">
         <h2 className="text-xl font-bold tracking-tight text-foreground">
           Billing
@@ -125,7 +122,6 @@ export default function Billing() {
 
       <Separator className="my-6" />
 
-      {/* balance card */}
       <motion.div
         variants={fadeUp}
         initial="hidden"
@@ -155,7 +151,6 @@ export default function Billing() {
         </div>
       </motion.div>
 
-      {/* plans */}
       <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
         Top up credits
       </p>
@@ -209,7 +204,6 @@ export default function Billing() {
         ))}
       </motion.div>
 
-      {/* transaction history */}
       <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
         Transaction history
       </p>

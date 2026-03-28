@@ -9,13 +9,8 @@ import {
 } from "../types";
 import { fetchWithAuth } from "../lib/utils";
 
-// Re-export types consumed by other modules so existing imports keep working
 export type { EmailItem, BillingTransaction };
 
-// ---------------------------------------------------------------------------
-// Module-level variable — intentionally NOT in Zustand state so passwords are
-// never surfaced in devtools or serialised snapshots.
-// ---------------------------------------------------------------------------
 type PendingAuth = {
   flow: "register" | "login";
   name: string;
@@ -24,9 +19,6 @@ type PendingAuth = {
 };
 let _pending: PendingAuth | null = null;
 
-// ---------------------------------------------------------------------------
-// Fetch helper — throws ApiError on non-2xx
-// ---------------------------------------------------------------------------
 async function apiFetch<T = void>(path: string, body: object): Promise<T> {
   const res = await fetch(path, {
     method: "POST",
@@ -44,26 +36,19 @@ async function apiFetch<T = void>(path: string, body: object): Promise<T> {
   return data as T;
 }
 
-// ---------------------------------------------------------------------------
-// Store shape
-// ---------------------------------------------------------------------------
 type Store = {
   user: User | null;
-  /** Email currently awaiting OTP verification */
   pendingEmail: string | null;
   credits: number;
   history: EmailItem[];
   transactions: BillingTransaction[];
 
-  // Auth actions — all async, throw ApiError on failure
   register: (name: string, email: string, password: string) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   verifyOtp: (email: string, otp: string) => Promise<void>;
-  /** Re-sends OTP using the credentials stored from the last register/login call */
   resendOtp: () => Promise<void>;
   logout: () => Promise<void>;
 
-  // Legacy helper kept for Topbar / direct user override
   setUser: (u: User | null) => void;
 
   deductCredits: (chars: number) => boolean;
@@ -74,9 +59,6 @@ type Store = {
   refreshCredits: () => Promise<void>;
 };
 
-// ---------------------------------------------------------------------------
-// Store implementation
-// ---------------------------------------------------------------------------
 export const useStore = create<Store>()(
   persist(
     (set, get) => ({
@@ -121,9 +103,7 @@ export const useStore = create<Store>()(
       logout: async () => {
         try {
           await apiFetch("/api/auth/logout", {});
-        } catch {
-          // always clear local state even if the request fails
-        }
+        } catch {}
         _pending = null;
         set({ user: null, pendingEmail: null });
       },
@@ -170,8 +150,6 @@ export const useStore = create<Store>()(
     {
       name: "mailify-auth",
       storage: createJSONStorage(() => localStorage),
-      // Only persist user and credits — keep history/transactions session-only
-      // and never persist pendingEmail (in-flight OTP state).
       partialize: (s) => ({ user: s.user, credits: s.credits }),
     },
   ),

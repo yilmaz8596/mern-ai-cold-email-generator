@@ -42,8 +42,7 @@ export const useAiStore = create<AiStore>()((set) => ({
     if (!res.ok) {
       throw new ApiError(
         res.status,
-        (data as { message?: string }).message ??
-          "Failed to generate email",
+        (data as { message?: string }).message ?? "Failed to generate email",
       );
     }
 
@@ -73,4 +72,3 @@ export const useAiStore = create<AiStore>()((set) => ({
 }));
 
 export default useAiStore;
-

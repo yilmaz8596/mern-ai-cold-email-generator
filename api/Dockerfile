@@ -25,9 +25,9 @@ FROM node:22-alpine as deps-prod
 
 WORKDIR /app
 
-COPY package.json ./
+# Copy lockfile so npm ci can be used (avoids slow dep resolution)
+COPY package*.json ./
 
-# Install production deps; prefer `npm ci` if lockfile exists, fall back to `npm install`
 RUN if [ -f package-lock.json ]; then npm ci --omit=dev; else npm install --omit=dev; fi
 
 FROM node:22-alpine as builder

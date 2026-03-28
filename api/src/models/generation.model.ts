@@ -19,7 +19,12 @@ export interface IGeneration extends Document {
 
 const generationSchema = new Schema<IGeneration>(
   {
-    userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true,
+    },
     subject: { type: String, required: true },
     emailBody: { type: String, required: true },
     linkedInDM: { type: String, default: "" },

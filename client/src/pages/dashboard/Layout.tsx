@@ -14,7 +14,10 @@ export default function DashboardLayout() {
     >
       <Topbar onMenuClick={() => setMobileSidebarOpen(true)} />
       <div className="flex flex-1">
-        <Sidebar open={mobileSidebarOpen} onClose={() => setMobileSidebarOpen(false)} />
+        <Sidebar
+          open={mobileSidebarOpen}
+          onClose={() => setMobileSidebarOpen(false)}
+        />
         <motion.main
           key="dashboard-main"
           initial={{ opacity: 0, y: 8 }}

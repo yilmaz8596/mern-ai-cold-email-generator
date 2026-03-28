@@ -53,7 +53,6 @@ export default function AdminTransactions() {
         </p>
       </div>
 
-      {/* summary cards */}
       <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
         {[
           { label: "Total revenue", value: `$${totalRevenue}` },
@@ -86,7 +85,6 @@ export default function AdminTransactions() {
         ))}
       </div>
 
-      {/* plan filter tabs */}
       <div className="mb-4 flex gap-1">
         {ALL_PLANS.map((p) => (
           <button

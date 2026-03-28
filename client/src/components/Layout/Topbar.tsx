@@ -25,14 +25,23 @@ export default function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
   return (
     <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-border bg-card px-6">
       <div className="flex items-center gap-3">
-        {/* Hamburger — only visible below lg */}
         <button
           onClick={onMenuClick}
           className="flex size-8 items-center justify-center text-muted-foreground transition-colors hover:text-foreground lg:hidden"
           aria-label="Open menu"
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="size-5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            className="size-5"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M4 6h16M4 12h16M4 18h16"
+            />
           </svg>
         </button>
         <Link
