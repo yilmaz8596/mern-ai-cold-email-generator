@@ -4,12 +4,15 @@ import useStore from "../../store/useStore";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
+import Modal from "../../components/Modal";
 
 export default function Settings() {
   const user = useStore((s) => s.user);
   const [name, setName] = useState(user?.name ?? "");
   const [email, setEmail] = useState(user?.email ?? "");
   const [saved, setSaved] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [confirmText, setConfirmText] = useState("");
 
   const onSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,16 +97,49 @@ export default function Settings() {
           <p className="mt-0.5 mb-5 text-xs text-muted-foreground">
             Irreversible actions for your account.
           </p>
-          <div className="mt-auto flex items-center gap-3">
-            <Button variant="destructive" size="sm" disabled>
-              Delete account
-            </Button>
-            <p className="text-xs text-muted-foreground">
-              This will permanently delete all your data.
-            </p>
+            <div className="mt-auto flex items-center gap-3">
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => setShowConfirm(true)}
+              >
+                Delete account
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                This will permanently delete all your data.
+              </p>
+            </div>
           </div>
-        </div>
       </div>
+
+      <Modal open={showConfirm} onClose={() => setShowConfirm(false)} title="Delete account">
+          <p className="text-sm text-muted-foreground mb-4">This action is irreversible. Type <strong>DELETE</strong> to confirm.</p>
+          <div className="flex gap-2">
+            <Input value={confirmText} onChange={(e) => setConfirmText(e.target.value)} placeholder="Type DELETE to confirm" />
+            <Button
+              variant="destructive"
+              onClick={async () => {
+                if (confirmText !== "DELETE") return;
+                try {
+                  const res = await fetch("/api/user/me", {
+                    method: "DELETE",
+                    credentials: "include",
+                  });
+                  if (!res.ok) throw new Error("delete_failed");
+                  // clear client state and redirect to landing
+                  await useStore.getState().logout();
+                  useStore.getState().setUser(null);
+                  window.location.href = "/";
+                } catch (err) {
+                  console.error("Account deletion failed", err);
+                  setShowConfirm(false);
+                }
+              }}
+            >
+              Confirm
+            </Button>
+          </div>
+        </Modal>
     </motion.div>
   );
 }

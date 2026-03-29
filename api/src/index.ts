@@ -8,6 +8,7 @@ import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes";
 import aiRoutes from "./routes/aiRoutes";
 import billingRoutes from "./routes/billingRoutes";
+import userRoutes from "./routes/userRoutes";
 import logger from "./config/logger";
 import { connectRedis } from "./config/redis";
 import { connectDB } from "./config/db";
@@ -59,6 +60,7 @@ app.get("/health", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/billing", billingRoutes);
+app.use("/api/user", userRoutes);
 async function startServer() {
   try {
     await connectRedis();
