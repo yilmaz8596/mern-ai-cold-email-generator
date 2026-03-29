@@ -7,7 +7,10 @@ interface AuthenticatedRequest extends Request {
   user?: { userId: string; email: string };
 }
 
-export const deleteAccount = async (req: AuthenticatedRequest, res: Response) => {
+export const deleteAccount = async (
+  req: AuthenticatedRequest,
+  res: Response,
+) => {
   try {
     const userId = req.user?.userId;
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
