@@ -22,3 +22,5 @@ spec:
               value: "production"
             - name: REDIS_URL
               value: ""
+            - name: MONGO_URI
+              value: ""
