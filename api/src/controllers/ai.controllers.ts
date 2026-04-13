@@ -2,12 +2,19 @@ import { Request, Response } from "express";
 import { Resend } from "resend";
 import { tryCatch } from "../util/tryCatch";
 import { Generation } from "../models/generation.model";
+import User from "../models/user.model";
 
 export const generateEmail = tryCatch(async (req: Request, res: Response) => {
   const { prompt } = req.body;
 
   if (!prompt) {
     return res.status(400).json({ message: "Prompt is required" });
+  }
+
+  const user = (req as any).user;
+  const dbUser = await User.findById(user.userId).select("credits").lean();
+  if (!dbUser || dbUser.credits < 1) {
+    return res.status(402).json({ message: "Insufficient credits" });
   }
 
   const systemPrompt = `Generate a cold email based on the following prompt: "${prompt}". The email should be concise, engaging, and tailored to the target audience. Include a clear call-to-action and maintain a professional tone. Avoid using overly technical language or jargon. The email should be suitable for a business context and aim to capture the recipient's interest effectively. The response should be in JSON format with the following structure: { "subject": "Email subject", "emailBody": "Email body content", linkedInDM: "LinkedIn direct message content", "followUpEmail": "Follow-up email content" }`;
@@ -70,7 +77,6 @@ export const generateEmail = tryCatch(async (req: Request, res: Response) => {
     return res.status(500).json({ message: "Failed to parse generated email" });
   }
 
-  const user = (req as any).user;
   const chars =
     subject.length +
     emailBody.length +
@@ -84,20 +90,23 @@ export const generateEmail = tryCatch(async (req: Request, res: Response) => {
     tone = "professional",
     length: emailLength = "medium",
   } = req.body;
-  await Generation.create({
-    userId: user.userId,
-    subject,
-    emailBody,
-    linkedInDM,
-    followUpEmail,
-    chars,
-    creditsUsed,
-    inputs: { product, audience, tone, length: emailLength },
-  });
+  await Promise.all([
+    Generation.create({
+      userId: user.userId,
+      subject,
+      emailBody,
+      linkedInDM,
+      followUpEmail,
+      chars,
+      creditsUsed,
+      inputs: { product, audience, tone, length: emailLength },
+    }),
+    User.findByIdAndUpdate(user.userId, { $inc: { credits: -creditsUsed } }),
+  ]);
 
   return res
     .status(200)
-    .json({ subject, emailBody, linkedInDM, followUpEmail });
+    .json({ subject, emailBody, linkedInDM, followUpEmail, creditsUsed });
 });
 
 export const getHistory = tryCatch(async (req: Request, res: Response) => {

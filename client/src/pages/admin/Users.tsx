@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Badge } from "../../components/ui/badge";
 import { Input } from "../../components/ui/input";
@@ -11,25 +11,36 @@ import {
   DialogDescription,
   DialogFooter,
 } from "../../components/ui/dialog";
-import { MOCK_USERS } from "./Overview";
 
-const planColor: Record<
-  string,
-  "default" | "secondary" | "outline" | "destructive"
-> = {
-  Pro: "default",
-  Starter: "secondary",
-  Free: "outline",
+type AdminUser = {
+  id: string;
+  name: string;
+  email: string;
+  credits: number;
+  verified: boolean;
+  isAdmin: boolean;
+  joined: string;
+  emails: number;
 };
 
 type ConfirmTarget = { id: string; name: string; isSuspended: boolean } | null;
 
 export default function AdminUsers() {
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [suspended, setSuspended] = useState<Set<string>>(new Set());
   const [confirmTarget, setConfirmTarget] = useState<ConfirmTarget>(null);
 
-  const filtered = MOCK_USERS.filter(
+  useEffect(() => {
+    fetch("/api/admin/users", { credentials: "include" })
+      .then((r) => r.json())
+      .then((data) => setUsers(Array.isArray(data) ? data : []))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  const filtered = users.filter(
     (u) =>
       u.name.toLowerCase().includes(query.toLowerCase()) ||
       u.email.toLowerCase().includes(query.toLowerCase()),
@@ -47,7 +58,7 @@ export default function AdminUsers() {
     setConfirmTarget(null);
   };
 
-  const maxCredits = Math.max(...MOCK_USERS.map((u) => u.credits), 1);
+  const maxCredits = Math.max(...users.map((u) => u.credits), 1);
 
   return (
     <motion.div
@@ -62,8 +73,9 @@ export default function AdminUsers() {
             Users
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            {filtered.length} of {MOCK_USERS.length} accounts ·{" "}
-            {MOCK_USERS.filter((u) => u.verified).length} verified
+            {loading
+              ? "Loading…"
+              : `${filtered.length} of ${users.length} accounts · ${users.filter((u) => u.verified).length} verified`}
           </p>
         </div>
         <Input
@@ -78,20 +90,34 @@ export default function AdminUsers() {
         <table className="w-full text-sm">
           <thead className="border-b border-border bg-muted/40">
             <tr>
-              {["User", "Credits", "Plan", "Verified", "Joined", "Actions"].map(
-                (h) => (
-                  <th
-                    key={h}
-                    className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-widest text-muted-foreground"
-                  >
-                    {h}
-                  </th>
-                ),
-              )}
+              {[
+                "User",
+                "Credits",
+                "Emails",
+                "Verified",
+                "Joined",
+                "Actions",
+              ].map((h) => (
+                <th
+                  key={h}
+                  className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-widest text-muted-foreground"
+                >
+                  {h}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
-            {filtered.length === 0 ? (
+            {loading ? (
+              <tr>
+                <td
+                  colSpan={6}
+                  className="px-4 py-8 text-center text-sm text-muted-foreground"
+                >
+                  Loading users…
+                </td>
+              </tr>
+            ) : filtered.length === 0 ? (
               <tr>
                 <td
                   colSpan={6}
@@ -139,13 +165,8 @@ export default function AdminUsers() {
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-3">
-                    <Badge
-                      variant={planColor[u.plan] ?? "outline"}
-                      className="text-xs"
-                    >
-                      {u.plan}
-                    </Badge>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {u.emails}
                   </td>
                   <td className="px-4 py-3">
                     <Badge

@@ -7,6 +7,7 @@ import {
   createCheckout as lsCreateCheckout,
 } from "@lemonsqueezy/lemonsqueezy.js";
 import User from "../models/user.model";
+import { Transaction } from "../models/transaction.model";
 
 dotenv.config();
 
@@ -79,7 +80,25 @@ export const handleWebhook = tryCatch(async (req: Request, res: Response) => {
   const credits = getVariantCredits()[variantId];
 
   if (userId && credits) {
-    await User.findByIdAndUpdate(userId, { $inc: { credits } });
+    const planName =
+      credits === 5000 ? "Starter" : credits === 20000 ? "Pro" : "Unknown";
+    const amountCents = Math.round(payload.data.attributes.total ?? 0);
+    const orderId = String(payload.data.id);
+    await Promise.all([
+      User.findByIdAndUpdate(userId, { $inc: { credits } }),
+      Transaction.findOneAndUpdate(
+        { orderId },
+        {
+          userId,
+          plan: planName,
+          credits,
+          amountCents,
+          status: "completed",
+          orderId,
+        },
+        { upsert: true, new: true },
+      ),
+    ]);
   }
   res.sendStatus(200);
 });

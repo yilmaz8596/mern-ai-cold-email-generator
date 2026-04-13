@@ -1,10 +1,10 @@
-import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import OtpVerification from "./pages/OtpVerification";
 import PrivateRoute from "./components/PrivateRoute";
+import AdminRoute from "./components/AdminRoute";
 import DashboardLayout from "./pages/dashboard/Layout";
 import Generate from "./pages/dashboard/Generate";
 import History from "./pages/dashboard/History";
@@ -16,6 +16,7 @@ import AdminLayout from "./pages/admin/Layout";
 import AdminOverview from "./pages/admin/Overview";
 import AdminUsers from "./pages/admin/Users";
 import AdminTransactions from "./pages/admin/Transactions";
+import AdminRevenue from "./pages/admin/Revenue";
 
 export default function App() {
   return (
@@ -40,11 +41,14 @@ export default function App() {
           </Route>
         </Route>
 
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<Navigate to="overview" replace />} />
-          <Route path="overview" element={<AdminOverview />} />
-          <Route path="users" element={<AdminUsers />} />
-          <Route path="transactions" element={<AdminTransactions />} />
+        <Route element={<AdminRoute />}>
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<Navigate to="overview" replace />} />
+            <Route path="overview" element={<AdminOverview />} />
+            <Route path="users" element={<AdminUsers />} />
+            <Route path="transactions" element={<AdminTransactions />} />
+            <Route path="revenue" element={<AdminRevenue />} />
+          </Route>
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -42,6 +42,7 @@ function downloadString(text: string, filename: string, mime = "text/plain") {
 
 export default function Bulk() {
   const credits = useStore((s) => s.credits);
+  const deductCredits = useStore((s) => s.deductCredits);
 
   const [rows, setRows] = useState<CsvRow[]>([]);
   const [results, setResults] = useState<RowResult[]>([]);
@@ -132,6 +133,8 @@ export default function Bulk() {
           res[i] = { error: data.message ?? "Generation failed" };
         } else {
           res[i] = { subject: data.subject, emailBody: data.emailBody };
+          const creditsUsed = Number(data.creditsUsed) || CREDITS_PER_ROW;
+          deductCredits(creditsUsed * 100);
         }
       } catch (err) {
         res[i] = { error: String(err) };

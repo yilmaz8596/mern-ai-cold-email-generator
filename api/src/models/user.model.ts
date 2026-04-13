@@ -6,6 +6,7 @@ interface IUser extends Document {
   email: string;
   password: string;
   isVerified: boolean;
+  isAdmin: boolean;
   credits: number;
   otpHash?: string;
   otpExpires?: Date;
@@ -32,6 +33,10 @@ const userSchema = new Schema<IUser>(
       minlength: 6,
     },
     isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    isAdmin: {
       type: Boolean,
       default: false,
     },

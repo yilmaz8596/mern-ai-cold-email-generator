@@ -1,5 +1,5 @@
 import React from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, Link } from "react-router-dom";
 import useStore from "../../store/useStore";
 
 const navItems = [
@@ -17,6 +17,7 @@ interface SidebarProps {
 
 export default function Sidebar({ open = false, onClose }: SidebarProps) {
   const credits = useStore((s) => s.credits);
+  const user = useStore((s) => s.user);
 
   const sidebarContent = (
     <>
@@ -38,6 +39,16 @@ export default function Sidebar({ open = false, onClose }: SidebarProps) {
             {label}
           </NavLink>
         ))}
+        {user?.isAdmin && (
+          <Link
+            to="/admin/overview"
+            onClick={onClose}
+            className="mt-1 flex items-center gap-3 border border-primary/30 bg-primary/5 px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/10"
+          >
+            <span className="text-base leading-none">⬡</span>
+            Admin Dashboard
+          </Link>
+        )}
       </nav>
 
       <div className="mt-auto px-3">

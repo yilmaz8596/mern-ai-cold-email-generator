@@ -9,6 +9,7 @@ import authRoutes from "./routes/authRoutes";
 import aiRoutes from "./routes/aiRoutes";
 import billingRoutes from "./routes/billingRoutes";
 import userRoutes from "./routes/userRoutes";
+import adminRoutes from "./routes/adminRoutes";
 import logger from "./config/logger";
 import { connectRedis } from "./config/redis";
 import { connectDB } from "./config/db";
@@ -61,6 +62,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/billing", billingRoutes);
 app.use("/api/user", userRoutes);
+app.use("/api/admin", adminRoutes);
 async function startServer() {
   try {
     await connectRedis();

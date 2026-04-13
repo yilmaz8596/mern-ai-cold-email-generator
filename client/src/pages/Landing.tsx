@@ -4,6 +4,7 @@ import { motion, useInView } from "framer-motion";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { Separator } from "../components/ui/separator";
+import useStore from "../store/useStore";
 
 /* ─── animation variants ─────────────────────────────────── */
 const fadeUp = {
@@ -266,6 +267,8 @@ const testimonials = [
 
 /* ─── Navbar ─────────────────────────────────────────────── */
 function Navbar() {
+  const user = useStore((s) => s.user);
+
   return (
     <motion.nav
       initial={{ opacity: 0, y: -20 }}
@@ -288,14 +291,34 @@ function Navbar() {
         transition={{ delay: 0.25, duration: 0.4 }}
         className="flex items-center gap-3"
       >
-        <Link to="/login">
-          <Button variant="ghost" size="sm">
-            Login
-          </Button>
-        </Link>
-        <Link to="/register">
-          <Button size="sm">Get started free</Button>
-        </Link>
+        {user ? (
+          <>
+            <span className="hidden text-sm text-muted-foreground sm:inline">
+              Hi, {user.name.split(" ")[0]}
+              {user.isAdmin && (
+                <span className="ml-1.5 rounded-sm bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-primary">
+                  Admin
+                </span>
+              )}
+            </span>
+            <Link to={user.isAdmin ? "/admin/overview" : "/dashboard"}>
+              <Button size="sm">
+                {user.isAdmin ? "Admin Dashboard" : "Go to Dashboard"}
+              </Button>
+            </Link>
+          </>
+        ) : (
+          <>
+            <Link to="/login">
+              <Button variant="ghost" size="sm">
+                Login
+              </Button>
+            </Link>
+            <Link to="/register">
+              <Button size="sm">Get started free</Button>
+            </Link>
+          </>
+        )}
       </motion.div>
     </motion.nav>
   );

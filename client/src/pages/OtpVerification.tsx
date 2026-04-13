@@ -52,7 +52,8 @@ export default function OtpVerification() {
     setLoading(true);
     try {
       await verifyOtp(pendingEmail, value);
-      navigate("/dashboard/generate");
+      const updatedUser = useStore.getState().user;
+      navigate(updatedUser?.isAdmin ? "/admin/overview" : "/dashboard/generate");
     } catch (err: unknown) {
       setError(
         err instanceof Error

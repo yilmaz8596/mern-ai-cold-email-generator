@@ -1,7 +1,16 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Badge } from "../../components/ui/badge";
-import { MOCK_TX } from "./Overview";
+
+type AdminTransaction = {
+  id: string;
+  user: string;
+  plan: string;
+  amount: string;
+  credits: number;
+  date: string;
+  status: string;
+};
 
 const planColor: Record<
   string,
@@ -24,18 +33,28 @@ const ALL_PLANS = ["All", "Pro", "Starter", "Free"] as const;
 type PlanFilter = (typeof ALL_PLANS)[number];
 
 export default function AdminTransactions() {
+  const [transactions, setTransactions] = useState<AdminTransaction[]>([]);
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<PlanFilter>("All");
 
+  useEffect(() => {
+    fetch("/api/admin/transactions", { credentials: "include" })
+      .then((r) => r.json())
+      .then((data) => setTransactions(Array.isArray(data) ? data : []))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
   const filtered =
-    filter === "All" ? MOCK_TX : MOCK_TX.filter((tx) => tx.plan === filter);
-  const totalRevenue = MOCK_TX.filter((t) => t.status === "completed").reduce(
-    (s, t) => s + parseInt(t.amount.replace("$", "")),
+    filter === "All"
+      ? transactions
+      : transactions.filter((tx) => tx.plan === filter);
+  const completed = transactions.filter((t) => t.status === "completed");
+  const totalRevenue = completed.reduce(
+    (s, t) => s + parseInt(t.amount.replace("$", "") || "0"),
     0,
   );
-  const totalCredits = MOCK_TX.filter((t) => t.status === "completed").reduce(
-    (s, t) => s + t.credits,
-    0,
-  );
+  const totalCredits = completed.reduce((s, t) => s + t.credits, 0);
 
   return (
     <motion.div
@@ -49,7 +68,7 @@ export default function AdminTransactions() {
           Transactions
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Credit purchase log · {MOCK_TX.length} total
+          Credit purchase log · {loading ? "…" : `${transactions.length} total`}
         </p>
       </div>
 
@@ -57,16 +76,7 @@ export default function AdminTransactions() {
         {[
           { label: "Total revenue", value: `$${totalRevenue}` },
           { label: "Credits issued", value: totalCredits.toLocaleString() },
-          {
-            label: "Transactions",
-            value:
-              MOCK_TX.filter((t) => t.status === "completed").toString()
-                .length > 0
-                ? MOCK_TX.filter(
-                    (t) => t.status === "completed",
-                  ).length.toString()
-                : "0",
-          },
+          { label: "Transactions", value: completed.length.toString() },
         ].map((c, i) => (
           <motion.div
             key={c.label}
@@ -124,50 +134,65 @@ export default function AdminTransactions() {
             </tr>
           </thead>
           <tbody key={filter}>
-            {filtered.map((tx, i) => (
-              <motion.tr
-                key={tx.id}
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
-                className="border-b border-border last:border-0 hover:bg-muted/20"
-              >
-                <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
-                  {tx.id}
+            {loading ? (
+              <tr>
+                <td
+                  colSpan={7}
+                  className="px-4 py-8 text-center text-sm text-muted-foreground"
+                >
+                  Loading…
                 </td>
-                <td className="px-4 py-3 text-muted-foreground">{tx.user}</td>
-                <td className="px-4 py-3">
-                  <Badge
-                    variant={planColor[tx.plan] ?? "outline"}
-                    className="text-xs"
-                  >
-                    {tx.plan}
-                  </Badge>
+              </tr>
+            ) : filtered.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={7}
+                  className="px-4 py-8 text-center text-sm text-muted-foreground"
+                >
+                  No transactions{filter !== "All" ? ` for ${filter}` : ""}.
                 </td>
-                <td className="px-4 py-3 font-semibold text-foreground">
-                  {tx.amount}
-                </td>
-                <td className="px-4 py-3 text-muted-foreground">
-                  {tx.credits.toLocaleString()}
-                </td>
-                <td className="px-4 py-3 text-muted-foreground">{tx.date}</td>
-                <td className="px-4 py-3">
-                  <Badge
-                    variant={statusColor[tx.status] ?? "outline"}
-                    className="text-xs"
-                  >
-                    {tx.status}
-                  </Badge>
-                </td>
-              </motion.tr>
-            ))}
+              </tr>
+            ) : (
+              filtered.map((tx, i) => (
+                <motion.tr
+                  key={tx.id}
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                  className="border-b border-border last:border-0 hover:bg-muted/20"
+                >
+                  <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                    {tx.id.slice(0, 8)}…
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">{tx.user}</td>
+                  <td className="px-4 py-3">
+                    <Badge
+                      variant={planColor[tx.plan] ?? "outline"}
+                      className="text-xs"
+                    >
+                      {tx.plan}
+                    </Badge>
+                  </td>
+                  <td className="px-4 py-3 font-semibold text-foreground">
+                    {tx.amount}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {tx.credits.toLocaleString()}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">{tx.date}</td>
+                  <td className="px-4 py-3">
+                    <Badge
+                      variant={statusColor[tx.status] ?? "outline"}
+                      className="text-xs"
+                    >
+                      {tx.status}
+                    </Badge>
+                  </td>
+                </motion.tr>
+              ))
+            )}
           </tbody>
         </table>
-        {filtered.length === 0 && (
-          <p className="py-8 text-center text-sm text-muted-foreground">
-            No transactions for this plan.
-          </p>
-        )}
       </div>
     </motion.div>
   );

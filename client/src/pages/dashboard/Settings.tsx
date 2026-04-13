@@ -8,16 +8,73 @@ import Modal from "../../components/Modal";
 
 export default function Settings() {
   const user = useStore((s) => s.user);
+  const setUser = useStore((s) => s.setUser);
   const [name, setName] = useState(user?.name ?? "");
-  const [email, setEmail] = useState(user?.email ?? "");
-  const [saved, setSaved] = useState(false);
+  const [email] = useState(user?.email ?? "");
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileError, setProfileError] = useState("");
+  const [profileSaved, setProfileSaved] = useState(false);
+
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [passwordSaving, setPasswordSaving] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordSaved, setPasswordSaved] = useState(false);
+
   const [showConfirm, setShowConfirm] = useState(false);
   const [confirmText, setConfirmText] = useState("");
 
-  const onSave = (e: React.FormEvent) => {
+  const onSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    setProfileError("");
+    setProfileSaving(true);
+    try {
+      const res = await fetch("/api/user/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ name }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setProfileError(data.message ?? "Failed to save profile.");
+        return;
+      }
+      if (user) setUser({ ...user, name: data.name });
+      setProfileSaved(true);
+      setTimeout(() => setProfileSaved(false), 2000);
+    } catch {
+      setProfileError("Network error. Please try again.");
+    } finally {
+      setProfileSaving(false);
+    }
+  };
+
+  const onChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError("");
+    setPasswordSaving(true);
+    try {
+      const res = await fetch("/api/user/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setPasswordError(data.message ?? "Failed to update password.");
+        return;
+      }
+      setCurrentPassword("");
+      setNewPassword("");
+      setPasswordSaved(true);
+      setTimeout(() => setPasswordSaved(false), 2000);
+    } catch {
+      setPasswordError("Network error. Please try again.");
+    } finally {
+      setPasswordSaving(false);
+    }
   };
 
   return (
@@ -40,9 +97,9 @@ export default function Settings() {
         <div className="flex flex-col border border-border p-5">
           <p className="text-sm font-semibold text-foreground">Profile</p>
           <p className="mt-0.5 mb-5 text-xs text-muted-foreground">
-            Update your display name and email.
+            Update your display name.
           </p>
-          <form onSubmit={onSave} className="flex flex-1 flex-col gap-4">
+          <form onSubmit={onSaveProfile} className="flex flex-1 flex-col gap-4">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="s-name">Name</Label>
               <Input
@@ -58,13 +115,20 @@ export default function Settings() {
                 id="s-email"
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@company.com"
+                disabled
+                className="opacity-60"
               />
             </div>
+            {profileError && (
+              <p className="text-xs text-destructive">{profileError}</p>
+            )}
             <div className="mt-auto">
-              <Button type="submit" size="sm">
-                {saved ? "Saved ✓" : "Save changes"}
+              <Button type="submit" size="sm" disabled={profileSaving}>
+                {profileSaved
+                  ? "Saved ✓"
+                  : profileSaving
+                    ? "Saving…"
+                    : "Save changes"}
               </Button>
             </div>
           </form>
@@ -75,21 +139,48 @@ export default function Settings() {
           <p className="mt-0.5 mb-5 text-xs text-muted-foreground">
             Change your account password.
           </p>
-          <div className="flex flex-1 flex-col gap-4">
+          <form
+            onSubmit={onChangePassword}
+            className="flex flex-1 flex-col gap-4"
+          >
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="s-current">Current password</Label>
-              <Input id="s-current" type="password" placeholder="••••••••" />
+              <Input
+                id="s-current"
+                type="password"
+                placeholder="••••••••"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+              />
             </div>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="s-new">New password</Label>
-              <Input id="s-new" type="password" placeholder="••••••••" />
+              <Input
+                id="s-new"
+                type="password"
+                placeholder="••••••••"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
             </div>
+            {passwordError && (
+              <p className="text-xs text-destructive">{passwordError}</p>
+            )}
             <div className="mt-auto">
-              <Button size="sm" variant="outline" disabled>
-                Update password
+              <Button
+                size="sm"
+                variant="outline"
+                type="submit"
+                disabled={passwordSaving || !currentPassword || !newPassword}
+              >
+                {passwordSaved
+                  ? "Updated ✓"
+                  : passwordSaving
+                    ? "Updating…"
+                    : "Update password"}
               </Button>
             </div>
-          </div>
+          </form>
         </div>
 
         <div className="flex flex-col border border-destructive/30 p-5 md:col-span-2">
@@ -136,7 +227,6 @@ export default function Settings() {
                   credentials: "include",
                 });
                 if (!res.ok) throw new Error("delete_failed");
-                // clear client state and redirect to landing
                 await useStore.getState().logout();
                 useStore.getState().setUser(null);
                 window.location.href = "/";

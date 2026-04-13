@@ -6,6 +6,7 @@ const links = [
   { to: "overview", label: "Overview", icon: "▣" },
   { to: "users", label: "Users", icon: "▦" },
   { to: "transactions", label: "Transactions", icon: "≡" },
+  { to: "revenue", label: "Revenue", icon: "$" },
 ];
 
 function currentPageLabel(pathname: string) {

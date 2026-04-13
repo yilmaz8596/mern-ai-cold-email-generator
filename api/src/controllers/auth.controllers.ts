@@ -201,7 +201,12 @@ export const verifyOTP = tryCatch(async (req: Request, res: Response) => {
   logger.info(`OTP verified and tokens issued: email=${emailLower}`);
   res.status(200).json({
     message: "OTP verified successfully",
-    user: { id: user._id, name: user.name, email: user.email },
+    user: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      isAdmin: user.isAdmin,
+    },
     credits: user.credits,
   });
 });
