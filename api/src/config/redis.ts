@@ -10,15 +10,14 @@ export const redisClient = process.env.REDIS_URL
 
 export const connectRedis = async () => {
   try {
-    if (!process.env.REDIS_URL) {
-      console.log("Redis disabled (no REDIS_URL provided)");
+    if (!redisClient) {
+      console.log("Redis disabled (no REDIS_URL)");
       return;
     }
 
     await redisClient.connect();
-    console.log("Connected to Redis successfully");
+    console.log("Redis connected");
   } catch (error) {
-    logger.error(`Redis connection failed: ${error}`);
-    console.log("Continuing without Redis...");
+    console.log("Redis failed but continuing:", error);
   }
 };
