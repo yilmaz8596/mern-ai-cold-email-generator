@@ -3,10 +3,10 @@ import { tryCatch } from "../util/tryCatch";
 import User from "../models/user.model";
 import logger from "../config/logger";
 import bcrypt from "bcryptjs";
-import { generateOtp } from "../util/generateOTP";
+import { generateOtp } from "../util/generateOtp";
 import { sendEmail } from "../util/sendEmail";
 import { redisClient } from "../config/redis";
-import { verifyOtp } from "../util/verifyOTP";
+import { verifyOtp } from "../util/verifyOtp";
 import { generateTokens, verifyRefreshToken } from "../util/generateTokens";
 
 export const register = tryCatch(async (req: Request, res: Response) => {
