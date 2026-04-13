@@ -1,22 +1,44 @@
+export interface RedisSafeClient {
+  get: (key: string) => Promise<string | null>;
+  set: (key: string, value: string, opts?: any) => Promise<any>;
+  del: (key: string) => Promise<number>;
+}
+
 import { createClient } from "redis";
-import dotenv from "dotenv";
 import logger from "./logger";
 
-dotenv.config();
+let realClient: any = null;
 
-export const redisClient = process.env.REDIS_URL
-  ? createClient({ url: process.env.REDIS_URL })
-  : null;
+const fallback: RedisSafeClient = {
+  get: async () => null,
+  set: async () => "OK",
+  del: async () => 0,
+};
+
+export const redisClient: RedisSafeClient = fallback;
 
 export const connectRedis = async () => {
+  const url = process.env.REDIS_URL;
+
+  if (!url || url.trim() === "") {
+    logger.info("Redis disabled (no REDIS_URL)");
+    return;
+  }
+
   try {
-    if (redisClient !== null) {
-      await redisClient.connect();
-      logger.info("Connected to Redis successfully");
-    } else {
-      logger.info("Redis disabled (no REDIS_URL)");
-    }
-  } catch (error) {
-    console.log("Redis failed but continuing:", error);
+    realClient = createClient({ url });
+
+    realClient.on("error", (err: any) => logger.error("Redis error: " + err));
+
+    await realClient.connect();
+
+    logger.info("Redis connected");
+
+    // 🔥 swap implementation safely
+    redisClient.get = realClient.get.bind(realClient);
+    redisClient.set = realClient.set.bind(realClient);
+    redisClient.del = realClient.del.bind(realClient);
+  } catch (err) {
+    logger.error("Redis failed, using fallback: " + err);
   }
 };
