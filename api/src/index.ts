@@ -63,17 +63,23 @@ app.use("/api/ai", aiRoutes);
 app.use("/api/billing", billingRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/admin", adminRoutes);
+
 async function startServer() {
   try {
     await connectRedis();
-    await connectDB();
-    app.listen(PORT, () => {
-      logger.info(`Server is running on port ${PORT}`);
-    });
-  } catch (error) {
-    logger.error(`Failed to start server: ${error}`);
-    process.exit(1);
+  } catch (e) {
+    logger.warn("Redis failed, continuing...");
   }
+
+  try {
+    await connectDB();
+  } catch (e) {
+    logger.error("DB connection failed, retrying in background...");
+  }
+
+  app.listen(PORT, () => {
+    logger.info(`Server running on port ${PORT}`);
+  });
 }
 
 startServer();
