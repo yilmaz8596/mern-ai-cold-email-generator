@@ -4,9 +4,9 @@ import logger from "./logger";
 
 dotenv.config();
 
-export const redisClient = createClient({
-  url: process.env.REDIS_URL!,
-});
+export const redisClient = process.env.REDIS_URL
+  ? createClient({ url: process.env.REDIS_URL })
+  : null;
 
 export const connectRedis = async () => {
   try {
