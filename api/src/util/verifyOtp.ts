@@ -8,7 +8,7 @@ export const verifyOtp = async (
 ): Promise<boolean> => {
   try {
     const otpKey = `otp:${email}`;
-    const storedOtpHash = await redisClient.get(otpKey);
+    const storedOtpHash = await redisClient?.get(otpKey);
 
     if (!storedOtpHash) {
       logger.warn(`OTP verification failed: No OTP found for email=${email}`);

@@ -43,7 +43,7 @@ export const register = tryCatch(async (req: Request, res: Response) => {
 
   const otp = generateOtp();
   const otpHash = await bcrypt.hash(otp, 10);
-  await redisClient.setEx(`otp:${emailLower}`, 10 * 60, otpHash);
+  await redisClient?.setEx(`otp:${emailLower}`, 10 * 60, otpHash);
 
   await sendEmail({
     to: emailLower,
@@ -85,7 +85,7 @@ export const login = tryCatch(async (req: Request, res: Response) => {
 
   const otp = generateOtp();
   const otpHash = await bcrypt.hash(otp, 10);
-  await redisClient.setEx(`otp:${emailLower}`, 10 * 60, otpHash);
+  await redisClient?.setEx(`otp:${emailLower}`, 10 * 60, otpHash);
 
   await sendEmail({
     to: emailLower,
@@ -115,7 +115,7 @@ export const refreshToken = tryCatch(async (req: Request, res: Response) => {
       .json({ message: "Invalid or expired refresh token" });
   }
 
-  const stored = await redisClient.get(`refresh:${payload.userId}`);
+  const stored = await redisClient?.get(`refresh:${payload.userId}`);
   if (!stored || stored !== token) {
     return res.status(401).json({ message: "Refresh token revoked" });
   }
@@ -147,7 +147,7 @@ export const logout = tryCatch(async (req: Request, res: Response) => {
   if (token) {
     try {
       const payload = verifyRefreshToken(token);
-      await redisClient.del(`refresh:${payload.userId}`);
+      await redisClient?.del(`refresh:${payload.userId}`);
     } catch {}
   }
   res.clearCookie("refreshToken");
@@ -173,7 +173,7 @@ export const verifyOTP = tryCatch(async (req: Request, res: Response) => {
     return res.status(400).json({ message: "OTP has expired or is invalid" });
   }
 
-  await redisClient.del(`otp:${emailLower}`);
+  await redisClient?.del(`otp:${emailLower}`);
 
   if (!user.isVerified) {
     user.isVerified = true;
