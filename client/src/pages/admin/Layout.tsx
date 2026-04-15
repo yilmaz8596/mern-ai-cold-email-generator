@@ -1,4 +1,4 @@
-import React from "react";
+import "react";
 import { Outlet, NavLink, Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 

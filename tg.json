@@ -1,0 +1,11 @@
+{
+  "Name": "mern-backend-tg",
+  "Protocol": "HTTP",
+  "Port": 5000,
+  "TargetType": "ip",
+  "VpcId": "vpc-0bef48672dcb33915",
+  "HealthCheckProtocol": "HTTP",
+  "HealthCheckPath": "/health",
+  "HealthCheckIntervalSeconds": 30,
+  "Matcher": { "HttpCode": "200" }
+}

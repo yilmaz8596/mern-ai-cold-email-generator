@@ -20,7 +20,95 @@ spec:
           env:
             - name: NODE_ENV
               value: "production"
-            - name: REDIS_URL
-              value: ""
+            - name: PORT
+              value: "5000"
             - name: MONGO_URI
-              value: ""
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: MONGO_URI
+            - name: CORS_ORIGIN
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: CORS_ORIGIN
+            - name: JWT_ACCESS_TOKEN_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: JWT_ACCESS_TOKEN_SECRET
+            - name: JWT_REFRESH_TOKEN_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: JWT_REFRESH_TOKEN_SECRET
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: REDIS_URL
+            - name: GROQ_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: GROQ_API_KEY
+            - name: EMAIL_SERVICE
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: EMAIL_SERVICE
+            - name: EMAIL_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: EMAIL_HOST
+            - name: EMAIL_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: EMAIL_PORT
+            - name: EMAIL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: EMAIL_USER
+            - name: EMAIL_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: EMAIL_PASS
+            - name: LEMONSQUEEZY_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: LEMONSQUEEZY_API_KEY
+            - name: LEMONSQUEEZY_STORE_ID
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: LEMONSQUEEZY_STORE_ID
+            - name: LEMONSQUEEZY_WEBHOOK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: LEMONSQUEEZY_WEBHOOK_SECRET
+            - name: LS_VARIANT_STARTER
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: LS_VARIANT_STARTER
+            - name: LS_VARIANT_PRO
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: LS_VARIANT_PRO
+            - name: RESEND_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: RESEND_API_KEY
+            - name: FROM_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: FROM_EMAIL

@@ -1,4 +1,4 @@
-import React from "react";
+import "react";
 import { Navigate, Outlet } from "react-router-dom";
 import useStore from "../store/useStore";
 

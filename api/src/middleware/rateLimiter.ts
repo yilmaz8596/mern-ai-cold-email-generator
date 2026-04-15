@@ -12,13 +12,16 @@ export const createRateLimiter = (
     const key = `ratelimit:${keyPrefix}:${identifier}`;
 
     try {
-      const current = await redisClient?.incr(key);
-      if (current === 1) {
+      let current: number | null = null;
+      if (redisClient) {
+        current = await redisClient?.incr(key);
+      }
+      if (current === 1 && redisClient) {
         await redisClient?.expire(key, windowSeconds);
       }
 
       if (current !== null && current !== undefined && current > maxRequests) {
-        const ttl = await redisClient?.ttl(key);
+        const ttl = redisClient ? await redisClient.ttl(key) : null;
         res.setHeader("Retry-After", String(ttl));
         return res.status(429).json({
           message: `Rate limit exceeded. Try again in ${Math.ceil(Number(ttl) / 60)} minute(s).`,

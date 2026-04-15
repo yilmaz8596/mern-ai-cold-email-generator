@@ -4,7 +4,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 import mongoSanitize from "express-mongo-sanitize";
 import cookiParser from "cookie-parser";
-import dotenv from "dotenv";
+// import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes";
 import aiRoutes from "./routes/aiRoutes";
 import billingRoutes from "./routes/billingRoutes";
@@ -14,7 +14,7 @@ import logger from "./config/logger";
 import { connectRedis } from "./config/redis";
 import { connectDB } from "./config/db";
 
-dotenv.config();
+// dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;

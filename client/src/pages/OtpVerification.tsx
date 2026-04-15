@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -53,7 +53,9 @@ export default function OtpVerification() {
     try {
       await verifyOtp(pendingEmail, value);
       const updatedUser = useStore.getState().user;
-      navigate(updatedUser?.isAdmin ? "/admin/overview" : "/dashboard/generate");
+      navigate(
+        updatedUser?.isAdmin ? "/admin/overview" : "/dashboard/generate",
+      );
     } catch (err: unknown) {
       setError(
         err instanceof Error

@@ -1,5 +1,4 @@
 import crypto from "crypto";
-import dotenv from "dotenv";
 import { Request, Response } from "express";
 import { tryCatch } from "../util/tryCatch";
 import {
@@ -8,8 +7,6 @@ import {
 } from "@lemonsqueezy/lemonsqueezy.js";
 import User from "../models/user.model";
 import { Transaction } from "../models/transaction.model";
-
-dotenv.config();
 
 lemonSqueezySetup({
   apiKey: process.env.LEMONSQUEEZY_API_KEY!,

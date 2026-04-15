@@ -1,9 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
 import logger from "../config/logger";
-
-dotenv.config();
 
 interface AuthenticatedRequest extends Request {
   user?: {

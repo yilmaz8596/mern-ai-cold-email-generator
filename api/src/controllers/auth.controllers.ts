@@ -43,7 +43,9 @@ export const register = tryCatch(async (req: Request, res: Response) => {
 
   const otp = generateOtp();
   const otpHash = await bcrypt.hash(otp, 10);
-  await redisClient?.setEx(`otp:${emailLower}`, 10 * 60, otpHash);
+  if (redisClient) {
+    await redisClient?.setEx(`otp:${emailLower}`, 10 * 60, otpHash);
+  }
 
   await sendEmail({
     to: emailLower,
@@ -85,7 +87,9 @@ export const login = tryCatch(async (req: Request, res: Response) => {
 
   const otp = generateOtp();
   const otpHash = await bcrypt.hash(otp, 10);
-  await redisClient?.setEx(`otp:${emailLower}`, 10 * 60, otpHash);
+  if (redisClient) {
+    await redisClient?.setEx(`otp:${emailLower}`, 10 * 60, otpHash);
+  }
 
   await sendEmail({
     to: emailLower,
@@ -173,7 +177,9 @@ export const verifyOTP = tryCatch(async (req: Request, res: Response) => {
     return res.status(400).json({ message: "OTP has expired or is invalid" });
   }
 
-  await redisClient?.del(`otp:${emailLower}`);
+  if (redisClient) {
+    await redisClient?.del(`otp:${emailLower}`);
+  }
 
   if (!user.isVerified) {
     user.isVerified = true;

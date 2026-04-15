@@ -22,11 +22,13 @@ export const generateTokens = async (payload: TokenPayload) => {
     expiresIn: REFRESH_TOKEN_TTL,
   });
 
-  await redisClient?.setEx(
-    `refresh:${payload.userId}`,
-    REFRESH_TOKEN_TTL_SECONDS,
-    refreshToken,
-  );
+  if (redisClient) {
+    await redisClient?.setEx(
+      `refresh:${payload.userId}`,
+      REFRESH_TOKEN_TTL_SECONDS,
+      refreshToken,
+    );
+  }
 
   return { accessToken, refreshToken };
 };

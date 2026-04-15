@@ -1,4 +1,4 @@
-import React from "react";
+import "react";
 import { motion } from "framer-motion";
 import GeneratorForm from "../../components/GeneratorForm";
 
