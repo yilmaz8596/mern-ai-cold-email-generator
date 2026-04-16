@@ -26,6 +26,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Validate required secrets
+        run: |
+          set -e
+          echo "Checking required secrets/env vars..."
+          REQUIRED=(AWS_ACCOUNT_ID AWS_REGION ECR_REPO_FRONTEND ECR_REPO_BACKEND)
+          MISSING=()
+          for v in "${REQUIRED[@]}"; do
+            if [ -z "${!v}" ]; then
+              MISSING+=("$v")
+            fi
+          done
+          if [ ${#MISSING[@]} -ne 0 ]; then
+            echo "Missing required secrets/env vars: ${MISSING[*]}"
+            exit 1
+          fi
+          echo "All required secrets present."
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
