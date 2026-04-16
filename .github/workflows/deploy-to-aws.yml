@@ -95,6 +95,18 @@ jobs:
             echo "ERROR: invalid FRONTEND_IMAGE tag: $FRONTEND_IMAGE"
             exit 1
           fi
+          # Ensure the image tag does not already exist in ECR (respect immutability)
+          for attempt in 1 2 3; do
+            if aws ecr describe-images --repository-name "${ECR_REPO_FRONTEND}" --image-ids imageTag="$IMAGE_TAG" --region "$AWS_REGION" >/dev/null 2>&1; then
+              echo "FRONTEND tag $IMAGE_TAG already exists in ECR (attempt $attempt). Generating a new tag."
+              IMAGE_TAG="${SHORT_SHA}-${RUN_SUFFIX}-$(date +%s%N)-$RANDOM"
+              FRONTEND_IMAGE="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_FRONTEND}:${IMAGE_TAG}"
+              echo "New FRONTEND_IMAGE=$FRONTEND_IMAGE"
+            else
+              echo "FRONTEND tag $IMAGE_TAG is available."
+              break
+            fi
+          done
           cd client
           docker build -t "$FRONTEND_IMAGE" --progress=plain .
           docker push "$FRONTEND_IMAGE"
@@ -118,6 +130,18 @@ jobs:
             echo "ERROR: invalid BACKEND_IMAGE tag: $BACKEND_IMAGE"
             exit 1
           fi
+          # Ensure the image tag does not already exist in ECR (respect immutability)
+          for attempt in 1 2 3; do
+            if aws ecr describe-images --repository-name "${ECR_REPO_BACKEND}" --image-ids imageTag="$IMAGE_TAG" --region "$AWS_REGION" >/dev/null 2>&1; then
+              echo "BACKEND tag $IMAGE_TAG already exists in ECR (attempt $attempt). Generating a new tag."
+              IMAGE_TAG="${SHORT_SHA}-${RUN_SUFFIX}-$(date +%s%N)-$RANDOM"
+              BACKEND_IMAGE="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_BACKEND}:${IMAGE_TAG}"
+              echo "New BACKEND_IMAGE=$BACKEND_IMAGE"
+            else
+              echo "BACKEND tag $IMAGE_TAG is available."
+              break
+            fi
+          done
           cd api
           docker build -t "$BACKEND_IMAGE" --progress=plain .
           docker push "$BACKEND_IMAGE"
