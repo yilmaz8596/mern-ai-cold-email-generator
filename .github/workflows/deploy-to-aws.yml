@@ -55,21 +55,39 @@ jobs:
 
       - name: Set image tags
         run: |
-          echo "SHORT_SHA=${GITHUB_SHA::8}" >> $GITHUB_ENV
-          echo "FRONTEND_IMAGE=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_FRONTEND}:${SHORT_SHA}" >> $GITHUB_ENV
-          echo "BACKEND_IMAGE=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_BACKEND}:${SHORT_SHA}" >> $GITHUB_ENV
+          set -e
+          SHORT_SHA=$(printf "%.8s" "$GITHUB_SHA")
+          FRONTEND_IMAGE="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_FRONTEND}:${SHORT_SHA}"
+          BACKEND_IMAGE="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_BACKEND}:${SHORT_SHA}"
+          echo "SHORT_SHA=$SHORT_SHA" >> $GITHUB_ENV
+          echo "FRONTEND_IMAGE=$FRONTEND_IMAGE" >> $GITHUB_ENV
+          echo "BACKEND_IMAGE=$BACKEND_IMAGE" >> $GITHUB_ENV
+          if [[ -z "$SHORT_SHA" || "$SHORT_SHA" == ":" ]]; then
+            echo "ERROR: SHORT_SHA is empty"
+            exit 1
+          fi
+          if [[ "$FRONTEND_IMAGE" == *":" ]] || [[ "$BACKEND_IMAGE" == *":" ]]; then
+            echo "ERROR: invalid image tag produced"
+            echo "FRONTEND_IMAGE=$FRONTEND_IMAGE"
+            echo "BACKEND_IMAGE=$BACKEND_IMAGE"
+            exit 1
+          fi
 
       - name: Build and push frontend
         run: |
+          set -e
           cd client
-          docker build -t $FRONTEND_IMAGE --progress=plain .
-          docker push $FRONTEND_IMAGE
+          echo "Building frontend image: $FRONTEND_IMAGE"
+          docker build -t "$FRONTEND_IMAGE" --progress=plain .
+          docker push "$FRONTEND_IMAGE"
 
       - name: Build and push backend
         run: |
+          set -e
           cd api
-          docker build -t $BACKEND_IMAGE --progress=plain .
-          docker push $BACKEND_IMAGE
+          echo "Building backend image: $BACKEND_IMAGE"
+          docker build -t "$BACKEND_IMAGE" --progress=plain .
+          docker push "$BACKEND_IMAGE"
 
       - name: Update ECS task definition and deploy (frontend)
         env:
