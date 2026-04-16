@@ -57,9 +57,11 @@ jobs:
         run: |
           set -e
           SHORT_SHA=$(printf "%.8s" "$GITHUB_SHA")
-          FRONTEND_IMAGE="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_FRONTEND}:${SHORT_SHA}"
-          BACKEND_IMAGE="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_BACKEND}:${SHORT_SHA}"
+          IMAGE_TAG="${SHORT_SHA}-${GITHUB_RUN_NUMBER}"
+          FRONTEND_IMAGE="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_FRONTEND}:${IMAGE_TAG}"
+          BACKEND_IMAGE="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_BACKEND}:${IMAGE_TAG}"
           echo "SHORT_SHA=$SHORT_SHA" >> $GITHUB_ENV
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
           echo "FRONTEND_IMAGE=$FRONTEND_IMAGE" >> $GITHUB_ENV
           echo "BACKEND_IMAGE=$BACKEND_IMAGE" >> $GITHUB_ENV
           if [[ -z "$SHORT_SHA" ]]; then
