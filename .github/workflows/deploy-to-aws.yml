@@ -76,16 +76,38 @@ jobs:
       - name: Build and push frontend
         run: |
           set -e
+          SHORT_SHA=${GITHUB_SHA:0:8}
+          FRONTEND_IMAGE="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_FRONTEND}:${SHORT_SHA}"
+          echo "SHORT_SHA=$SHORT_SHA"
+          echo "FRONTEND_IMAGE=$FRONTEND_IMAGE"
+          if [[ -z "$SHORT_SHA" ]]; then
+            echo "ERROR: SHORT_SHA is empty"
+            exit 1
+          fi
+          if [[ "$FRONTEND_IMAGE" == *":" ]]; then
+            echo "ERROR: invalid FRONTEND_IMAGE tag: $FRONTEND_IMAGE"
+            exit 1
+          fi
           cd client
-          echo "Building frontend image: $FRONTEND_IMAGE"
           docker build -t "$FRONTEND_IMAGE" --progress=plain .
           docker push "$FRONTEND_IMAGE"
 
       - name: Build and push backend
         run: |
           set -e
+          SHORT_SHA=${GITHUB_SHA:0:8}
+          BACKEND_IMAGE="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_BACKEND}:${SHORT_SHA}"
+          echo "SHORT_SHA=$SHORT_SHA"
+          echo "BACKEND_IMAGE=$BACKEND_IMAGE"
+          if [[ -z "$SHORT_SHA" ]]; then
+            echo "ERROR: SHORT_SHA is empty"
+            exit 1
+          fi
+          if [[ "$BACKEND_IMAGE" == *":" ]]; then
+            echo "ERROR: invalid BACKEND_IMAGE tag: $BACKEND_IMAGE"
+            exit 1
+          fi
           cd api
-          echo "Building backend image: $BACKEND_IMAGE"
           docker build -t "$BACKEND_IMAGE" --progress=plain .
           docker push "$BACKEND_IMAGE"
 
