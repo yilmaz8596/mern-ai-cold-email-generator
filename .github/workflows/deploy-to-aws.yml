@@ -57,8 +57,8 @@ jobs:
         run: |
           set -e
           SHORT_SHA=$(printf "%.8s" "$GITHUB_SHA")
-          RUN_SUFFIX="${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}-$(date +%s%N)"
-          IMAGE_TAG="${SHORT_SHA}-${RUN_SUFFIX}"
+          # Use GITHUB_RUN_ID (unique per run) + high-precision timestamp + random to guarantee uniqueness
+          IMAGE_TAG="${SHORT_SHA}-${GITHUB_RUN_ID}-$(date +%s%N)-$RANDOM"
           FRONTEND_IMAGE="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_FRONTEND}:${IMAGE_TAG}"
           BACKEND_IMAGE="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_BACKEND}:${IMAGE_TAG}"
           echo "SHORT_SHA=$SHORT_SHA" >> $GITHUB_ENV
@@ -79,11 +79,7 @@ jobs:
       - name: Build and push frontend
         run: |
           set -e
-          unset FRONTEND_IMAGE BACKEND_IMAGE
-          SHORT_SHA=${GITHUB_SHA:0:8}
-          RUN_SUFFIX="${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}-$(date +%s%N)"
-          IMAGE_TAG="${SHORT_SHA}-${RUN_SUFFIX}"
-          FRONTEND_IMAGE="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_FRONTEND}:${IMAGE_TAG}"
+          # Use the precomputed env values set in the previous step
           echo "SHORT_SHA=$SHORT_SHA"
           echo "IMAGE_TAG=$IMAGE_TAG"
           echo "FRONTEND_IMAGE=$FRONTEND_IMAGE"
@@ -95,18 +91,6 @@ jobs:
             echo "ERROR: invalid FRONTEND_IMAGE tag: $FRONTEND_IMAGE"
             exit 1
           fi
-          # Ensure the image tag does not already exist in ECR (respect immutability)
-          for attempt in 1 2 3; do
-            if aws ecr describe-images --repository-name "${ECR_REPO_FRONTEND}" --image-ids imageTag="$IMAGE_TAG" --region "$AWS_REGION" >/dev/null 2>&1; then
-              echo "FRONTEND tag $IMAGE_TAG already exists in ECR (attempt $attempt). Generating a new tag."
-              IMAGE_TAG="${SHORT_SHA}-${RUN_SUFFIX}-$(date +%s%N)-$RANDOM"
-              FRONTEND_IMAGE="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_FRONTEND}:${IMAGE_TAG}"
-              echo "New FRONTEND_IMAGE=$FRONTEND_IMAGE"
-            else
-              echo "FRONTEND tag $IMAGE_TAG is available."
-              break
-            fi
-          done
           cd client
           docker build -t "$FRONTEND_IMAGE" --progress=plain .
           docker push "$FRONTEND_IMAGE"
@@ -114,11 +98,7 @@ jobs:
       - name: Build and push backend
         run: |
           set -e
-          unset FRONTEND_IMAGE BACKEND_IMAGE
-          SHORT_SHA=${GITHUB_SHA:0:8}
-          RUN_SUFFIX="${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}-$(date +%s%N)"
-          IMAGE_TAG="${SHORT_SHA}-${RUN_SUFFIX}"
-          BACKEND_IMAGE="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_BACKEND}:${IMAGE_TAG}"
+          # Use the precomputed env values set in the previous step
           echo "SHORT_SHA=$SHORT_SHA"
           echo "IMAGE_TAG=$IMAGE_TAG"
           echo "BACKEND_IMAGE=$BACKEND_IMAGE"
@@ -130,18 +110,6 @@ jobs:
             echo "ERROR: invalid BACKEND_IMAGE tag: $BACKEND_IMAGE"
             exit 1
           fi
-          # Ensure the image tag does not already exist in ECR (respect immutability)
-          for attempt in 1 2 3; do
-            if aws ecr describe-images --repository-name "${ECR_REPO_BACKEND}" --image-ids imageTag="$IMAGE_TAG" --region "$AWS_REGION" >/dev/null 2>&1; then
-              echo "BACKEND tag $IMAGE_TAG already exists in ECR (attempt $attempt). Generating a new tag."
-              IMAGE_TAG="${SHORT_SHA}-${RUN_SUFFIX}-$(date +%s%N)-$RANDOM"
-              BACKEND_IMAGE="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_BACKEND}:${IMAGE_TAG}"
-              echo "New BACKEND_IMAGE=$BACKEND_IMAGE"
-            else
-              echo "BACKEND tag $IMAGE_TAG is available."
-              break
-            fi
-          done
           cd api
           docker build -t "$BACKEND_IMAGE" --progress=plain .
           docker push "$BACKEND_IMAGE"
