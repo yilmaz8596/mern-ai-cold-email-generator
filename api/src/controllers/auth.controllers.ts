@@ -3,7 +3,7 @@ import { tryCatch } from "../util/tryCatch";
 import User from "../models/user.model";
 import logger from "../config/logger";
 import bcrypt from "bcryptjs";
-import { generateOtp } from "../util/generateOtp";
+import { generateOtp } from "../util";
 import { sendEmail } from "../util/sendEmail";
 import { redisClient } from "../config/redis";
 import { verifyOtp } from "../util/verifyOtp";
