@@ -57,7 +57,7 @@ jobs:
         run: |
           set -e
           SHORT_SHA=$(printf "%.8s" "$GITHUB_SHA")
-          RUN_SUFFIX="${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}-$(date +%s)"
+          RUN_SUFFIX="${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}-$(date +%s%N)"
           IMAGE_TAG="${SHORT_SHA}-${RUN_SUFFIX}"
           FRONTEND_IMAGE="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_FRONTEND}:${IMAGE_TAG}"
           BACKEND_IMAGE="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_BACKEND}:${IMAGE_TAG}"
@@ -81,7 +81,7 @@ jobs:
           set -e
           unset FRONTEND_IMAGE BACKEND_IMAGE
           SHORT_SHA=${GITHUB_SHA:0:8}
-          RUN_SUFFIX="${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}-$(date +%s)"
+          RUN_SUFFIX="${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}-$(date +%s%N)"
           IMAGE_TAG="${SHORT_SHA}-${RUN_SUFFIX}"
           FRONTEND_IMAGE="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_FRONTEND}:${IMAGE_TAG}"
           echo "SHORT_SHA=$SHORT_SHA"
@@ -104,7 +104,7 @@ jobs:
           set -e
           unset FRONTEND_IMAGE BACKEND_IMAGE
           SHORT_SHA=${GITHUB_SHA:0:8}
-          RUN_SUFFIX="${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}-$(date +%s)"
+          RUN_SUFFIX="${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}-$(date +%s%N)"
           IMAGE_TAG="${SHORT_SHA}-${RUN_SUFFIX}"
           BACKEND_IMAGE="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_BACKEND}:${IMAGE_TAG}"
           echo "SHORT_SHA=$SHORT_SHA"
