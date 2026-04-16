@@ -18,18 +18,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache: 'npm'
 
       - name: Build backend (api)
         working-directory: api
         run: |
-          npm ci
+          npm install
           npm run build
 
       - name: Build frontend (client)
         working-directory: client
         run: |
-          npm ci
+          npm install
           npm run build
 
       - name: Success
