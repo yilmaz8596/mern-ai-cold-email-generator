@@ -78,9 +78,12 @@ jobs:
       - name: Build and push frontend
         run: |
           set -e
+          unset FRONTEND_IMAGE BACKEND_IMAGE
           SHORT_SHA=${GITHUB_SHA:0:8}
-          FRONTEND_IMAGE="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_FRONTEND}:${SHORT_SHA}"
+          IMAGE_TAG="${SHORT_SHA}-${GITHUB_RUN_NUMBER}"
+          FRONTEND_IMAGE="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_FRONTEND}:${IMAGE_TAG}"
           echo "SHORT_SHA=$SHORT_SHA"
+          echo "IMAGE_TAG=$IMAGE_TAG"
           echo "FRONTEND_IMAGE=$FRONTEND_IMAGE"
           if [[ -z "$SHORT_SHA" ]]; then
             echo "ERROR: SHORT_SHA is empty"
@@ -97,9 +100,12 @@ jobs:
       - name: Build and push backend
         run: |
           set -e
+          unset FRONTEND_IMAGE BACKEND_IMAGE
           SHORT_SHA=${GITHUB_SHA:0:8}
-          BACKEND_IMAGE="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_BACKEND}:${SHORT_SHA}"
+          IMAGE_TAG="${SHORT_SHA}-${GITHUB_RUN_NUMBER}"
+          BACKEND_IMAGE="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_BACKEND}:${IMAGE_TAG}"
           echo "SHORT_SHA=$SHORT_SHA"
+          echo "IMAGE_TAG=$IMAGE_TAG"
           echo "BACKEND_IMAGE=$BACKEND_IMAGE"
           if [[ -z "$SHORT_SHA" ]]; then
             echo "ERROR: SHORT_SHA is empty"
