@@ -3,7 +3,14 @@ import { tryCatch } from "../util/tryCatch";
 import User from "../models/user.model";
 import logger from "../config/logger";
 import bcrypt from "bcryptjs";
-import { generateOtp } from "../util";
+// Inline generateOtp to avoid cross-file resolution issues inside Docker build
+import { randomInt } from "crypto";
+const generateOtp = (length = 6): string => {
+  if (length <= 0) return "";
+  const max = 10 ** length;
+  const n = randomInt(0, max);
+  return n.toString().padStart(length, "0");
+};
 import { sendEmail } from "../util/sendEmail";
 import { redisClient } from "../config/redis";
 import { verifyOtp } from "../util/verifyOtp";
