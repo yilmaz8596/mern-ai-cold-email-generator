@@ -105,6 +105,7 @@ export const useStore = create<Store>()(
           await apiFetch("/api/auth/logout", {});
         } catch (e) {
           console.error("Logout failed:", e instanceof Error ? e.message : e);
+        } finally {
           _pending = null;
           set({ user: null, pendingEmail: null });
         }
