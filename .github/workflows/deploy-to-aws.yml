@@ -62,7 +62,7 @@ jobs:
           echo "SHORT_SHA=$SHORT_SHA" >> $GITHUB_ENV
           echo "FRONTEND_IMAGE=$FRONTEND_IMAGE" >> $GITHUB_ENV
           echo "BACKEND_IMAGE=$BACKEND_IMAGE" >> $GITHUB_ENV
-          if [[ -z "$SHORT_SHA" || "$SHORT_SHA" == ":" ]]; then
+          if [[ -z "$SHORT_SHA" ]]; then
             echo "ERROR: SHORT_SHA is empty"
             exit 1
           fi
