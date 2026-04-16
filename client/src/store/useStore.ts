@@ -107,7 +107,17 @@ export const useStore = create<Store>()(
           console.error("Logout failed:", e instanceof Error ? e.message : e);
         } finally {
           _pending = null;
+          try {
+            localStorage.removeItem("mailify-auth");
+          } catch (err) {
+            /* ignore */
+          }
           set({ user: null, pendingEmail: null });
+          try {
+            window.location.href = "/login";
+          } catch (err) {
+            /* ignore */
+          }
         }
       },
 
