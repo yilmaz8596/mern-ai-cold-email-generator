@@ -1,0 +1,43 @@
+name: CD Debug — Environment and secret checks
+
+on:
+  push:
+    branches: [ cd-debug ]
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Debug - basic info
+        run: |
+          echo "GITHUB_SHA=$GITHUB_SHA"
+          echo "GITHUB_REF=$GITHUB_REF"
+          uname -a
+          echo "--- docker ---"
+          docker --version || echo "docker: not available"
+          echo "--- aws ---"
+          aws --version || echo "aws cli: not available"
+          echo "--- jq ---"
+          jq --version || echo "jq: not available"
+
+      - name: Debug - secret presence
+        run: |
+          set -e
+          check(){ if [ -z "${!1}" ]; then echo "$1: MISSING"; else echo "$1: PRESENT"; fi }
+          check AWS_ACCOUNT_ID
+          check AWS_REGION
+          check ECR_REPO_FRONTEND
+          check ECR_REPO_BACKEND
+          check FRONTEND_CLUSTER
+          check FRONTEND_SERVICE
+          check BACKEND_CLUSTER
+          check BACKEND_SERVICE
+          check FRONTEND_CONTAINER_NAME
+          check BACKEND_CONTAINER_NAME
+
+      - name: Done
+        run: echo "Debug complete"
