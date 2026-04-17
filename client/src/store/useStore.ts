@@ -115,16 +115,27 @@ export const useStore = create<Store>()(
         // Clear in-memory state immediately
         set({ user: null, credits: 0 });
 
-        // Then sync persisted storage to match
+        // Ensure persisted storage is cleared so rehydration won't restore the user
         try {
-          const persisted = { state: { user: null, credits: 0 }, version: 0 };
-          localStorage.setItem("mailify-auth", JSON.stringify(persisted));
+          localStorage.removeItem("mailify-auth");
         } catch (err: any) {
-          try {
-            localStorage.removeItem("mailify-auth");
-          } catch (err: any) {
-            console.log(err);
-          }
+          console.warn("Failed to remove persisted auth key:", err);
+        }
+
+        // Update in-memory state (again) and navigate to login, then reload to prevent stale rehydration
+        set({ user: null, credits: 0 });
+        try {
+          window.location.replace("/login");
+          // small delay to allow navigation then hard reload
+          setTimeout(() => {
+            try {
+              window.location.reload();
+            } catch (e) {
+              /* ignore */
+            }
+          }, 150);
+        } catch (err: any) {
+          /* ignore */
         }
       },
 

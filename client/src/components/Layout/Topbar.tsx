@@ -19,7 +19,6 @@ export default function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
 
   const handleLogout = async () => {
     await logout();
-    navigate("/login", { replace: true });
   };
 
   return (
