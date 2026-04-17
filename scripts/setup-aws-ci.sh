@@ -24,8 +24,10 @@ if [ -z "$AWS_REGION" ]; then
 fi
 
 POLICY_NAME="CI-ECS-ECR-Deploy-Policy"
-POLICY_FILE=$(mktemp /tmp/ci-policy.XXXX.json)
-TRUST_FILE=$(mktemp /tmp/ci-trust.XXXX.json)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+mkdir -p "$SCRIPT_DIR/.tmp"
+POLICY_FILE="$SCRIPT_DIR/.tmp/ci-policy.json"
+TRUST_FILE="$SCRIPT_DIR/.tmp/ci-trust.json"
 
 cat > "$POLICY_FILE" <<'JSON'
 {
