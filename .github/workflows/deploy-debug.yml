@@ -2,7 +2,7 @@ name: CD Debug — Environment and secret checks
 
 on:
   push:
-    branches: [ cd-debug ]
+    branches: [cd-debug]
 
 jobs:
   debug:
