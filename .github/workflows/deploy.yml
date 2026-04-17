@@ -107,6 +107,13 @@ jobs:
           # These secrets should be set in the repo: VITE_LS_VARIANT_STARTER, VITE_LS_VARIANT_PRO
           echo "VITE_LS_VARIANT_STARTER=${{ secrets.VITE_LS_VARIANT_STARTER }}" > client/.env
           echo "VITE_LS_VARIANT_PRO=${{ secrets.VITE_LS_VARIANT_PRO }}" >> client/.env
+          echo "--- client/.env ---"
+          cat client/.env || true
+          # Fail early if the Vite variant secrets are not set so we don't build a broken frontend
+          if ! grep -q "VITE_LS_VARIANT_STARTER=" client/.env || ! grep -q "VITE_LS_VARIANT_PRO=" client/.env; then
+            echo "ERROR: One or more VITE_LS_VARIANT_* values are missing in client/.env"
+            exit 1
+          fi
           cd client
           docker build -t "$FRONTEND_IMAGE" --progress=plain .
           docker push "$FRONTEND_IMAGE"
