@@ -101,26 +101,30 @@ export const useStore = create<Store>()(
       },
 
       logout: async () => {
-        // Immediately clear local state and persisted storage so UI is logged out
         _pending = null;
-        try {
-          localStorage.removeItem("mailify-auth");
-        } catch (err) {
-          /* ignore */
-        }
-        set({ user: null, pendingEmail: null });
-        try {
-          // Navigate to login promptly; server-side logout will be attempted but must not block the UI.
-          window.location.href = "/login";
-        } catch (err) {
-          /* ignore */
-        }
 
-        // Tell the server to revoke refresh token; don't block the UI
         try {
           await apiFetch("/api/auth/logout", {});
         } catch (e) {
-          console.error("Logout failed:", e instanceof Error ? e.message : e);
+          console.error(
+            "Server logout failed:",
+            e instanceof Error ? e.message : e,
+          );
+        }
+
+        // Clear in-memory state immediately
+        set({ user: null, credits: 0 });
+
+        // Then sync persisted storage to match
+        try {
+          const persisted = { state: { user: null, credits: 0 }, version: 0 };
+          localStorage.setItem("mailify-auth", JSON.stringify(persisted));
+        } catch (err: any) {
+          try {
+            localStorage.removeItem("mailify-auth");
+          } catch (err: any) {
+            console.log(err);
+          }
         }
       },
 

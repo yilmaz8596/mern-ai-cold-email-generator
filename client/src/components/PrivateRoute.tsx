@@ -20,8 +20,8 @@ export default function PrivateRoute() {
           const data = await res.json().catch(() => null);
           if (data && data.user) setUser(data.user);
         }
-      } catch (err) {
-        // ignore
+      } catch (err: any) {
+        console.log(err);
       } finally {
         if (mounted) setChecking(false);
       }
