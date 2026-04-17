@@ -1,8 +1,6 @@
 name: CD — Build, Push to ECR, Deploy to ECS
 
 on:
-  push:
-    branches: [cd-deploy]
   workflow_dispatch: {}
 
 env:
