@@ -91,7 +91,11 @@ export default function Billing() {
   }, []);
 
   const handleBuy = async (variantId: string, planName: string) => {
-    if (!variantId || variantId.startsWith("your_")) {
+    if (!variantId) {
+      console.warn("Billing: variantId missing or empty", {
+        variantId,
+        planName,
+      });
       toast.error("This plan is not configured yet.");
       return;
     }
