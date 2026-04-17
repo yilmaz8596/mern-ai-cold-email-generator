@@ -2,7 +2,7 @@ name: CD — Build, Push to ECR, Deploy to ECS
 
 on:
   push:
-    branches: [ cd-deploy ]
+    branches: [cd-deploy]
   workflow_dispatch: {}
 
 env:
@@ -26,6 +26,24 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Debug - runner + env presence
+        run: |
+          echo "GITHUB_SHA=$GITHUB_SHA"
+          echo "Runner: $(uname -a)"
+          echo "docker: $(docker --version 2>/dev/null || echo 'not available')"
+          echo "aws: $(aws --version 2>/dev/null || echo 'not available')"
+          check(){ if [ -z "${!1}" ]; then echo "$1: MISSING"; else echo "$1: PRESENT"; fi }
+          check AWS_ACCOUNT_ID
+          check AWS_REGION
+          check ECR_REPO_FRONTEND
+          check ECR_REPO_BACKEND
+          check FRONTEND_CLUSTER
+          check FRONTEND_SERVICE
+          check BACKEND_CLUSTER
+          check BACKEND_SERVICE
+          check FRONTEND_CONTAINER_NAME
+          check BACKEND_CONTAINER_NAME
 
       - name: Validate required secrets
         run: |
