@@ -99,11 +99,15 @@ update_task_definition(){
 
   td_json=$(aws ecs describe-task-definition --task-definition "$current_td_arn" --region "$REGION" --query 'taskDefinition')
 
-  new_td=$(echo "$td_json" | jq --arg cn "$container_name" --arg img "$new_image" '.containerDefinitions |= map(if .name == $cn then .image = $img else . end) | del(.taskDefinitionArn, .revision, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)')
+  # Remove fields not allowed by register-task-definition and set new container image
+  new_td=$(echo "$td_json" | jq --arg cn "$container_name" --arg img "$new_image" '
+    .containerDefinitions |= map(if .name == $cn then .image = $img else . end) |
+    del(.status, .taskDefinitionArn, .revision, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)')
 
   family=$(echo "$new_td" | jq -r '.family')
 
   echo "Registering new task definition for family $family..."
+  # Register expects either a filename (file://) or a JSON string; pass the JSON via stdin using --cli-input-json
   new_td_arn=$(aws ecs register-task-definition --cli-input-json "$new_td" --region "$REGION" --query 'taskDefinition.taskDefinitionArn' --output text)
 
   echo "Updating service to use new task definition $new_td_arn"
