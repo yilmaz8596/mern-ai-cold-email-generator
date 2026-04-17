@@ -103,6 +103,10 @@ jobs:
         run: |
           set -e
           echo "Building frontend image: $FRONTEND_IMAGE"
+          # Ensure Vite env vars are present at build time by writing client/.env
+          # These secrets should be set in the repo: VITE_LS_VARIANT_STARTER, VITE_LS_VARIANT_PRO
+          echo "VITE_LS_VARIANT_STARTER=${{ secrets.VITE_LS_VARIANT_STARTER }}" > client/.env
+          echo "VITE_LS_VARIANT_PRO=${{ secrets.VITE_LS_VARIANT_PRO }}" >> client/.env
           cd client
           docker build -t "$FRONTEND_IMAGE" --progress=plain .
           docker push "$FRONTEND_IMAGE"
