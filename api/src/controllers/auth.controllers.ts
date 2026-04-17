@@ -161,7 +161,9 @@ export const logout = tryCatch(async (req: Request, res: Response) => {
       await redisClient?.del(`refresh:${payload.userId}`);
     } catch {}
   }
+  // Clear both refresh and access tokens on logout
   res.clearCookie("refreshToken");
+  res.clearCookie("accessToken");
   res.status(200).json({ message: "Logged out successfully" });
 });
 
