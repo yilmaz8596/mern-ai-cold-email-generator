@@ -35,23 +35,7 @@ const statusVariant: Record<
   failed: "destructive",
 };
 
-const PLANS = [
-  {
-    name: "Starter",
-    credits: 5_000,
-    price: "$9",
-    desc: "Great for trying out cold outreach.",
-    variantId: import.meta.env.VITE_LS_VARIANT_STARTER as string,
-  },
-  {
-    name: "Pro",
-    credits: 20_000,
-    price: "$29",
-    desc: "For teams running high-volume campaigns.",
-    variantId: import.meta.env.VITE_LS_VARIANT_PRO as string,
-    highlighted: true,
-  },
-];
+// Plans are defined inside the component so they can read variant IDs from state
 
 export default function Billing() {
   const credits = useStore((s) => s.credits);
@@ -63,6 +47,31 @@ export default function Billing() {
   const navigate = useNavigate();
   const [buying, setBuying] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Variant IDs state (read from env when available, fallback to hardcoded IDs)
+  const [variantIds] = useState<Record<string, string>>(() => ({
+    starter: (import.meta.env.VITE_LS_VARIANT_STARTER as string) || "1454345",
+    pro: (import.meta.env.VITE_LS_VARIANT_PRO as string) || "1454346",
+  }));
+
+  // Define plans here so they can reference `variantIds` state
+  const PLANS = [
+    {
+      name: "Starter",
+      credits: 5_000,
+      price: "$9",
+      desc: "Great for trying out cold outreach.",
+      variantId: variantIds.starter,
+    },
+    {
+      name: "Pro",
+      credits: 20_000,
+      price: "$29",
+      desc: "For teams running high-volume campaigns.",
+      variantId: variantIds.pro,
+      highlighted: true,
+    },
+  ];
 
   const handleRefresh = async () => {
     setRefreshing(true);
