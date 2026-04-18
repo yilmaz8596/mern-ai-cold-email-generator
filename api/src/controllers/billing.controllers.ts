@@ -21,6 +21,16 @@ export const createCheckout = tryCatch(async (req: Request, res: Response) => {
   const { variantId, redirectUrl } = req.body;
   const user = (req as any).user;
 
+  // Defensive checks and logging to aid debugging on 500s
+  if (!variantId) {
+    console.warn("[createCheckout] missing variantId in request body", { body: req.body });
+    return res.status(400).json({ message: "variantId is required" });
+  }
+  if (!process.env.LEMONSQUEEZY_STORE_ID) {
+    console.error("[createCheckout] MISSING LEMONSQUEEZY_STORE_ID env var");
+    return res.status(500).json({ message: "Server not configured: missing store id" });
+  }
+
   const { data, error } = await lsCreateCheckout(
     process.env.LEMONSQUEEZY_STORE_ID!,
     variantId,
@@ -40,7 +50,7 @@ export const createCheckout = tryCatch(async (req: Request, res: Response) => {
       error.message,
       (error as any).cause,
     );
-    return res.status(500).json({ message: error.message });
+    return res.status(502).json({ message: "Payment provider error", details: error.message });
   }
   res.json({ url: data.data.attributes.url });
 });
