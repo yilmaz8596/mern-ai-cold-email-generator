@@ -144,6 +144,9 @@ jobs:
           NEW_REG=$(aws ecs register-task-definition --cli-input-json file://taskdef.updated.json --query 'taskDefinition.taskDefinitionArn' --output text)
           echo "Registered new task def: $NEW_REG"
           aws ecs update-service --cluster "$CLUSTER" --service "$SERVICE" --task-definition "$NEW_REG"
+          echo "Waiting for service $SERVICE to reach a stable state..."
+          aws ecs wait services-stable --cluster "$CLUSTER" --services "$SERVICE"
+          echo "Service $SERVICE is stable."
 
       - name: Update ECS task definition and deploy (backend)
         env:
@@ -174,6 +177,9 @@ jobs:
           NEW_REG=$(aws ecs register-task-definition --cli-input-json file://taskdef.updated.json --query 'taskDefinition.taskDefinitionArn' --output text)
           echo "Registered new task def: $NEW_REG"
           aws ecs update-service --cluster "$CLUSTER" --service "$SERVICE" --task-definition "$NEW_REG"
+          echo "Waiting for service $SERVICE to reach a stable state..."
+          aws ecs wait services-stable --cluster "$CLUSTER" --services "$SERVICE"
+          echo "Service $SERVICE is stable."
 
       - name: Done
         run: echo "Images pushed and services updated."
