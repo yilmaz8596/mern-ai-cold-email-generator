@@ -160,6 +160,17 @@ jobs:
           aws ecs describe-task-definition --task-definition "$CURRENT_TASK_DEF_ARN" > taskdef.json
           jq '.taskDefinition | del(.status, .revision, .taskDefinitionArn, .compatibilities, .requiresAttributes, .registeredAt, .registeredBy)' taskdef.json > taskdef.clean.json
           jq --arg name "$CONTAINER_NAME" --arg image "$NEW_IMAGE" '(.containerDefinitions[] | select(.name==$name) .image) = $image' taskdef.clean.json > taskdef.updated.json
+          # Inject LS variant env vars into the backend container so the webhook mapping works.
+          # These secrets should be set in the repo: LS_VARIANT_STARTER, LS_VARIANT_PRO
+          if [ -z "${{ secrets.LS_VARIANT_STARTER }}" ] || [ -z "${{ secrets.LS_VARIANT_PRO }}" ]; then
+            echo "Warning: LS_VARIANT_STARTER or LS_VARIANT_PRO secret is empty — backend will not receive variant IDs."
+          else
+            jq --arg name "$CONTAINER_NAME" \
+               --arg ls1 "${{ secrets.LS_VARIANT_STARTER }}" \
+               --arg ls2 "${{ secrets.LS_VARIANT_PRO }}" \
+               '(.containerDefinitions[] | select(.name==$name) .environment) |= ((. // []) | map(select(.name != "LS_VARIANT_STARTER" and .name != "LS_VARIANT_PRO")) + [{name:"LS_VARIANT_STARTER", value:$ls1}, {name:"LS_VARIANT_PRO", value:$ls2}])' \
+               taskdef.updated.json > taskdef.updated2.json && mv taskdef.updated2.json taskdef.updated.json
+          fi
           NEW_REG=$(aws ecs register-task-definition --cli-input-json file://taskdef.updated.json --query 'taskDefinition.taskDefinitionArn' --output text)
           echo "Registered new task def: $NEW_REG"
           aws ecs update-service --cluster "$CLUSTER" --service "$SERVICE" --task-definition "$NEW_REG"
