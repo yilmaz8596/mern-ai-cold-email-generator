@@ -177,3 +177,19 @@ jobs:
 
       - name: Done
         run: echo "Images pushed and services updated."
+
+      - name: Invalidate CloudFront cache for assets
+        if: always()
+        env:
+          SITE_DOMAINS: "www.sitesolutions.info sitesolutions.info"
+        run: |
+          set -e
+          echo "Looking up CloudFront distribution for: $SITE_DOMAINS"
+          DIST_ID=$(aws cloudfront list-distributions --output json | jq -r '.DistributionList.Items[] | select(.Aliases.Items[]?=="www.sitesolutions.info" or .Aliases.Items[]?=="sitesolutions.info") | .Id' | head -n1 || true)
+          if [ -z "$DIST_ID" ]; then
+            echo "No CloudFront distribution found for aliases: $SITE_DOMAINS. Skipping invalidation."
+            exit 0
+          fi
+          echo "Found distribution: $DIST_ID — creating invalidation for /assets/*"
+          aws cloudfront create-invalidation --distribution-id "$DIST_ID" --paths "/assets/*" --caller-reference "deploy-${GITHUB_RUN_ID}-$(date +%s)"
+          echo "Invalidation requested (may take a minute or two to propagate)."

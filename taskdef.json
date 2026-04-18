@@ -1,0 +1,102 @@
+{
+    "taskDefinition": {
+        "taskDefinitionArn": "arn:aws:ecs:eu-central-1:211125593865:task-definition/mern-ai-frontend:10",
+        "containerDefinitions": [
+            {
+                "name": "frontend",
+                "image": "211125593865.dkr.ecr.eu-central-1.amazonaws.com/mern-ai-cold-email-gen/frontend:07b5da39-24596820735-1776486257217427782-9280",
+                "cpu": 512,
+                "memory": 1024,
+                "portMappings": [
+                    {
+                        "containerPort": 80,
+                        "hostPort": 80,
+                        "protocol": "tcp",
+                        "name": "frontend-80-tcp",
+                        "appProtocol": "http"
+                    }
+                ],
+                "essential": true,
+                "environment": [],
+                "environmentFiles": [
+                    {
+                        "value": "arn:aws:s3:::my-bucket-aws85/.env",
+                        "type": "s3"
+                    }
+                ],
+                "mountPoints": [],
+                "volumesFrom": [],
+                "ulimits": [],
+                "logConfiguration": {
+                    "logDriver": "awslogs",
+                    "options": {
+                        "awslogs-group": "/ecs/mern-ai-frontend",
+                        "awslogs-create-group": "true",
+                        "awslogs-region": "eu-central-1",
+                        "awslogs-stream-prefix": "ecs"
+                    },
+                    "secretOptions": []
+                },
+                "systemControls": []
+            }
+        ],
+        "family": "mern-ai-frontend",
+        "taskRoleArn": "arn:aws:iam::211125593865:role/mern-ai-frontend",
+        "executionRoleArn": "arn:aws:iam::211125593865:role/ecsTaskExecutionRole",
+        "networkMode": "awsvpc",
+        "revision": 10,
+        "volumes": [],
+        "status": "ACTIVE",
+        "requiresAttributes": [
+            {
+                "name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
+            },
+            {
+                "name": "ecs.capability.execution-role-awslogs"
+            },
+            {
+                "name": "com.amazonaws.ecs.capability.ecr-auth"
+            },
+            {
+                "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
+            },
+            {
+                "name": "ecs.capability.env-files.s3"
+            },
+            {
+                "name": "com.amazonaws.ecs.capability.task-iam-role"
+            },
+            {
+                "name": "ecs.capability.execution-role-ecr-pull"
+            },
+            {
+                "name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
+            },
+            {
+                "name": "ecs.capability.task-eni"
+            },
+            {
+                "name": "com.amazonaws.ecs.capability.docker-remote-api.1.29"
+            }
+        ],
+        "placementConstraints": [],
+        "compatibilities": [
+            "EC2",
+            "FARGATE",
+            "MANAGED_INSTANCES"
+        ],
+        "runtimePlatform": {
+            "cpuArchitecture": "X86_64",
+            "operatingSystemFamily": "LINUX"
+        },
+        "requiresCompatibilities": [
+            "FARGATE"
+        ],
+        "cpu": "512",
+        "memory": "1024",
+        "registeredAt": "2026-04-18T07:25:25.806000+03:00",
+        "registeredBy": "arn:aws:sts::211125593865:assumed-role/ci-deploy-role/GitHubActions",
+        "enableFaultInjection": false
+    },
+    "tags": []
+}
