@@ -174,6 +174,17 @@ jobs:
                '(.containerDefinitions[] | select(.name==$name) .environment) |= ((. // []) | map(select(.name != "LS_VARIANT_STARTER" and .name != "LS_VARIANT_PRO")) + [{name:"LS_VARIANT_STARTER", value:$ls1}, {name:"LS_VARIANT_PRO", value:$ls2}])' \
                taskdef.updated.json > taskdef.updated2.json && mv taskdef.updated2.json taskdef.updated.json
           fi
+          # Inject LemonSqueezy API credentials into the backend container so checkout can authenticate
+          # These should be set in the repo secrets: LEMONSQUEEZY_API_KEY, LEMONSQUEEZY_STORE_ID
+          if [ -z "${{ secrets.LEMONSQUEEZY_API_KEY }}" ] || [ -z "${{ secrets.LEMONSQUEEZY_STORE_ID }}" ]; then
+            echo "Warning: LEMONSQUEEZY_API_KEY or LEMONSQUEEZY_STORE_ID is missing — LemonSqueezy calls will be unauthorized."
+          else
+            jq --arg name "$CONTAINER_NAME" \
+               --arg apiKey "${{ secrets.LEMONSQUEEZY_API_KEY }}" \
+               --arg storeId "${{ secrets.LEMONSQUEEZY_STORE_ID }}" \
+               '(.containerDefinitions[] | select(.name==$name) .environment) |= ((. // []) | map(select(.name != "LEMONSQUEEZY_API_KEY" and .name != "LEMONSQUEEZY_STORE_ID")) + [{name:"LEMONSQUEEZY_API_KEY", value:$apiKey}, {name:"LEMONSQUEEZY_STORE_ID", value:$storeId}])' \
+               taskdef.updated.json > taskdef.updated3.json && mv taskdef.updated3.json taskdef.updated.json
+          fi
           NEW_REG=$(aws ecs register-task-definition --cli-input-json file://taskdef.updated.json --query 'taskDefinition.taskDefinitionArn' --output text)
           echo "Registered new task def: $NEW_REG"
           aws ecs update-service --cluster "$CLUSTER" --service "$SERVICE" --task-definition "$NEW_REG"
