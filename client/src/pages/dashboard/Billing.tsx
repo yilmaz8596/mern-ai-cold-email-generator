@@ -97,6 +97,10 @@ export default function Billing() {
           ),
         );
     }
+    // load transaction history when landing on billing page
+    refreshTransactions().catch(() => {
+      /* ignore errors; UI will show empty state */
+    });
   }, []);
 
   const handleBuy = async (variantId: string, planName: string) => {

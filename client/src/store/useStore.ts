@@ -57,6 +57,7 @@ type Store = {
   addTransaction: (tx: BillingTransaction) => void;
   buyCredits: (variantId: string) => Promise<void>;
   refreshCredits: () => Promise<void>;
+  refreshTransactions: () => Promise<void>;
 };
 
 export const useStore = create<Store>()(
@@ -152,6 +153,17 @@ export const useStore = create<Store>()(
       addCredits: (amount) => set((s) => ({ credits: s.credits + amount })),
       addTransaction: (tx) =>
         set((s) => ({ transactions: [tx, ...s.transactions] })),
+
+      refreshTransactions: async () => {
+        const res = await fetchWithAuth("/api/billing/transactions");
+        if (!res.ok) throw new Error("transactions_fetch_failed");
+        const data = await res.json().catch(() => ({}));
+        set({
+          transactions:
+            (data as { transactions?: BillingTransaction[] }).transactions ??
+            [],
+        });
+      },
 
       buyCredits: async (variantId) => {
         const res = await fetchWithAuth("/api/billing/checkout", {

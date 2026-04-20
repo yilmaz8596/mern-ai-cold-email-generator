@@ -355,7 +355,11 @@ export default function Landing() {
           </motion.div>
 
           <h1 className="mb-6 w-full max-w-2xl text-5xl font-bold leading-[1.1] tracking-tighter text-foreground md:text-6xl lg:text-[4.5rem]">
-            <AnimatedHeadline text="Write better" delay={0.1} />
+            <AnimatedHeadline
+              text="Write better"
+              className="text-foreground"
+              delay={0.1}
+            />
             <br />
             <AnimatedHeadline
               text="cold emails, faster."

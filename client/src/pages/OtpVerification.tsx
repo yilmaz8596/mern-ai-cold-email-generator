@@ -95,7 +95,7 @@ export default function OtpVerification() {
         </p>
 
         <form onSubmit={onSubmit} className="flex flex-col gap-6">
-          <div className="flex justify-center">
+          <div className="flex justify-center mt-6">
             <InputOTP
               maxLength={6}
               value={value}

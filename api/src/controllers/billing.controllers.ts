@@ -122,3 +122,19 @@ export const getCredits = tryCatch(async (req: Request, res: Response) => {
   if (!dbUser) return res.status(404).json({ message: "User not found" });
   res.json({ credits: dbUser.credits ?? 0 });
 });
+
+export const getTransactions = tryCatch(async (req: Request, res: Response) => {
+  const user = (req as any).user;
+  const txs = await Transaction.find({ userId: user.userId }).sort({
+    createdAt: -1,
+  });
+  const result = txs.map((t) => ({
+    id: t._id.toString(),
+    plan: t.plan,
+    credits: t.credits,
+    amount: `$${(t.amountCents / 100).toFixed(2)}`,
+    date: t.createdAt.toISOString(),
+    status: t.status,
+  }));
+  res.json({ transactions: result });
+});
