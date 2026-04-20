@@ -42,6 +42,7 @@ export default function Billing() {
   const transactions = useStore((s) => s.transactions);
   const buyCredits = useStore((s) => s.buyCredits);
   const refreshCredits = useStore((s) => s.refreshCredits);
+  const refreshTransactions = useStore((s) => s.refreshTransactions);
 
   const location = useLocation();
   const navigate = useNavigate();
